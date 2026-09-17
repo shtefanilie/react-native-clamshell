@@ -1,0 +1,30 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": [
+    "clamshell"
+  ],
+  "ios": {
+    "iosModuleName": "Clamshell"
+  },
+  "android": {
+    "androidNamespace": [
+      "clamshell"
+    ],
+    "androidCxxLibName": "Clamshell"
+  },
+  "autolinking": {
+    "Clamshell": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridClamshell"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridClamshell"
+      }
+    }
+  },
+  "ignorePaths": [
+    "**/node_modules"
+  ]
+}
