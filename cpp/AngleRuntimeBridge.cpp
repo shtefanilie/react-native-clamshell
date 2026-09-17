@@ -13,7 +13,9 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <condition_variable>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -28,6 +30,8 @@ using facebook::jsi::Runtime;
 using facebook::jsi::Value;
 using margelo::nitro::HybridObject;
 using margelo::nitro::HybridObjectRegistry;
+
+constexpr AngleSubscriptionId kMaxSafeSubscriptionId = 9007199254740991ULL;
 
 struct AngleRuntimeBridge::Impl {
   std::mutex mutex;
@@ -50,6 +54,9 @@ AngleSubscriptionId AngleRuntimeBridge::addSink(
   if (impl_->invalidated) {
     throw std::runtime_error("AngleRuntimeBridge is invalidated");
   }
+  if (impl_->nextId > kMaxSafeSubscriptionId) {
+    throw std::overflow_error("AngleRuntimeBridge exhausted safe subscription IDs");
+  }
 
   const auto id = impl_->nextId++;
   impl_->sinks.emplace(id, std::move(sink));
@@ -57,8 +64,21 @@ AngleSubscriptionId AngleRuntimeBridge::addSink(
 }
 
 void AngleRuntimeBridge::removeSink(AngleSubscriptionId id) noexcept {
+  std::shared_ptr<UIRuntimeAngleSink> sink;
+  {
+    std::lock_guard lock(impl_->mutex);
+    const auto iterator = impl_->sinks.find(id);
+    if (iterator == impl_->sinks.end()) {
+      return;
+    }
+    sink = iterator->second;
+  }
+  sink->deactivateAndWait();
   std::lock_guard lock(impl_->mutex);
-  impl_->sinks.erase(id);
+  const auto iterator = impl_->sinks.find(id);
+  if (iterator != impl_->sinks.end() && iterator->second == sink) {
+    impl_->sinks.erase(iterator);
+  }
 }
 
 void AngleRuntimeBridge::emit(double degrees) {
@@ -80,8 +100,19 @@ void AngleRuntimeBridge::emit(double degrees) {
 }
 
 void AngleRuntimeBridge::invalidate() noexcept {
+  std::vector<std::shared_ptr<UIRuntimeAngleSink>> sinks;
+  {
+    std::lock_guard lock(impl_->mutex);
+    impl_->invalidated = true;
+    sinks.reserve(impl_->sinks.size());
+    for (const auto& [_, sink] : impl_->sinks) {
+      sinks.push_back(sink);
+    }
+  }
+  for (const auto& sink : sinks) {
+    sink->deactivateAndWait();
+  }
   std::lock_guard lock(impl_->mutex);
-  impl_->invalidated = true;
   impl_->sinks.clear();
 }
 
@@ -107,35 +138,141 @@ class WorkletsAngleSink final : public UIRuntimeAngleSink {
       : uiRuntime_(std::move(uiRuntime)),
         uiScheduler_(std::move(uiScheduler)),
         worklet_(std::move(worklet)),
-        lifetime_(std::make_shared<std::uint8_t>(0)) {}
+        state_(std::make_shared<State>()) {}
 
   ~WorkletsAngleSink() override {
-    lifetime_.reset();
+    deactivateAndWait();
   }
 
   void invoke(double degrees) override {
-    const std::weak_ptr<std::uint8_t> lifetime = lifetime_;
+    {
+      std::lock_guard lock(state_->mutex);
+      if (!state_->active) {
+        return;
+      }
+      ++state_->pending;
+    }
+
+    const auto state = state_;
+    const auto completed = std::make_shared<std::atomic<bool>>(false);
     const auto uiRuntime = uiRuntime_;
     const auto worklet = worklet_;
-    scheduleOnUIAttached(
-        uiScheduler_, [lifetime, uiRuntime, worklet, degrees]() {
-          if (lifetime.expired()) {
-            return;
-          }
-          const auto runtime = uiRuntime.lock();
-          if (runtime == nullptr) {
-            return;
-          }
-          worklets::runSyncOnRuntime(runtime, worklet, Value(degrees));
-        });
+    try {
+      scheduleOnUIAttached(
+          uiScheduler_, [state, completed, uiRuntime, worklet, degrees]() {
+            bool active;
+            {
+              std::lock_guard lock(state->mutex);
+              active = state->active;
+            }
+            try {
+              if (active) {
+                const auto runtime = uiRuntime.lock();
+                if (runtime != nullptr) {
+                  worklets::runSyncOnRuntime(runtime, worklet, Value(degrees));
+                }
+              }
+            } catch (...) {
+              complete(state, completed);
+              throw;
+            }
+            complete(state, completed);
+          });
+    } catch (...) {
+      complete(state, completed);
+      throw;
+    }
+  }
+
+  void deactivateAndWait() noexcept override {
+    std::unique_lock lock(state_->mutex);
+    state_->active = false;
+    state_->condition.notify_all();
+    state_->condition.wait(lock, [this]() { return state_->pending == 0; });
+  }
+
+  void waitUntilInactive() {
+    std::unique_lock lock(state_->mutex);
+    state_->condition.wait(lock, [this]() { return !state_->active; });
+  }
+
+  void waitUntilIdle() {
+    std::unique_lock lock(state_->mutex);
+    state_->condition.wait(lock, [this]() { return state_->pending == 0; });
+  }
+
+  std::shared_ptr<worklets::UIScheduler> getScheduler() const {
+    return uiScheduler_;
   }
 
  private:
+  struct State {
+    std::mutex mutex;
+    std::condition_variable condition;
+    bool active{true};
+    std::size_t pending{0};
+  };
+
+  static void complete(
+      const std::shared_ptr<State>& state,
+      const std::shared_ptr<std::atomic<bool>>& completed) noexcept {
+    if (completed->exchange(true)) {
+      return;
+    }
+    std::lock_guard lock(state->mutex);
+    if (--state->pending == 0) {
+      state->condition.notify_all();
+    }
+  }
+
   std::weak_ptr<worklets::WorkletRuntime> uiRuntime_;
   std::shared_ptr<worklets::UIScheduler> uiScheduler_;
   std::shared_ptr<worklets::Serializable> worklet_;
-  std::shared_ptr<std::uint8_t> lifetime_;
+  std::shared_ptr<State> state_;
 };
+
+AngleSubscriptionId validateSubscriptionId(double value) {
+  if (!std::isfinite(value) || value < 1 ||
+      value > static_cast<double>(kMaxSafeSubscriptionId) ||
+      std::floor(value) != value) {
+    throw std::invalid_argument(
+        "AngleRuntimeHost subscription ID must be a positive safe integer");
+  }
+  return static_cast<AngleSubscriptionId>(value);
+}
+
+void validateDegrees(double degrees) {
+  if (!std::isfinite(degrees)) {
+    throw std::invalid_argument("AngleRuntimeHost degrees must be finite");
+  }
+}
+
+struct UIBlocker {
+  std::mutex mutex;
+  std::condition_variable condition;
+  bool entered{false};
+  bool released{false};
+};
+
+std::shared_ptr<UIBlocker> blockUI(
+    const std::shared_ptr<worklets::UIScheduler>& scheduler) {
+  auto blocker = std::make_shared<UIBlocker>();
+  scheduleOnUIAttached(scheduler, [blocker]() {
+    std::unique_lock lock(blocker->mutex);
+    blocker->entered = true;
+    blocker->condition.notify_all();
+    blocker->condition.wait(lock, [blocker]() { return blocker->released; });
+  });
+  std::unique_lock lock(blocker->mutex);
+  blocker->condition.wait(lock, [blocker]() { return blocker->entered; });
+  return blocker;
+}
+
+void releaseUI(const std::shared_ptr<UIBlocker>& blocker) {
+  std::lock_guard lock(blocker->mutex);
+  blocker->released = true;
+  blocker->condition.notify_all();
+}
 
 class AngleRuntimeHostObject final : public HybridObject {
  public:
@@ -160,6 +297,12 @@ class AngleRuntimeHostObject final : public HybridObject {
       prototype.registerHybridMethod(
           "removeSink", &AngleRuntimeHostObject::removeSink);
       prototype.registerHybridMethod("emit", &AngleRuntimeHostObject::emit);
+      prototype.registerHybridMethod(
+          "emitConcurrentlyAndRemove",
+          &AngleRuntimeHostObject::emitConcurrentlyAndRemove);
+      prototype.registerHybridMethod(
+          "emitConcurrentlyAndInvalidate",
+          &AngleRuntimeHostObject::emitConcurrentlyAndInvalidate);
       prototype.registerHybridMethod(
           "startSynthetic", &AngleRuntimeHostObject::startSynthetic);
       prototype.registerHybridMethod(
@@ -192,35 +335,134 @@ class AngleRuntimeHostObject final : public HybridObject {
         "AngleRuntimeHost.addSink expects a serialized worklet",
         worklets::Serializable::ValueType::WorkletType);
 
-    const auto id = bridge_.addSink(std::make_shared<WorkletsAngleSink>(
-        uiRuntime, uiScheduler, worklet));
+    auto sink = std::make_shared<WorkletsAngleSink>(
+        uiRuntime, uiScheduler, worklet);
+    const auto id = bridge_.addSink(sink);
+    {
+      std::lock_guard lock(sinksMutex_);
+      sinks_[id] = sink;
+    }
     return Value(static_cast<double>(id));
   }
 
   void removeSink(double subscriptionId) {
-    bridge_.removeSink(static_cast<AngleSubscriptionId>(subscriptionId));
+    const auto id = validateSubscriptionId(subscriptionId);
+    bridge_.removeSink(id);
+    std::lock_guard lock(sinksMutex_);
+    sinks_.erase(id);
   }
 
   void emit(double degrees) {
+    validateDegrees(degrees);
     bridge_.emit(degrees);
   }
 
+  void emitConcurrentlyAndRemove(double subscriptionId, double degrees) {
+    const auto id = validateSubscriptionId(subscriptionId);
+    validateDegrees(degrees);
+    std::shared_ptr<WorkletsAngleSink> sink;
+    std::vector<std::shared_ptr<WorkletsAngleSink>> sinks;
+    {
+      std::lock_guard lock(sinksMutex_);
+      const auto iterator = sinks_.find(id);
+      if (iterator == sinks_.end()) {
+        throw std::invalid_argument("AngleRuntimeHost subscription does not exist");
+      }
+      sink = iterator->second;
+      sinks.reserve(sinks_.size());
+      for (const auto& [_, activeSink] : sinks_) {
+        sinks.push_back(activeSink);
+      }
+    }
+
+    const auto blocker = blockUI(sink->getScheduler());
+    try {
+      bridge_.emit(degrees);
+    } catch (...) {
+      releaseUI(blocker);
+      throw;
+    }
+    std::thread remover;
+    try {
+      remover = std::thread([this, id]() { bridge_.removeSink(id); });
+    } catch (...) {
+      releaseUI(blocker);
+      throw;
+    }
+    sink->waitUntilInactive();
+    releaseUI(blocker);
+    remover.join();
+    for (const auto& activeSink : sinks) {
+      activeSink->waitUntilIdle();
+    }
+    std::lock_guard lock(sinksMutex_);
+    sinks_.erase(id);
+  }
+
+  void emitConcurrentlyAndInvalidate(double degrees) {
+    validateDegrees(degrees);
+    std::vector<std::shared_ptr<WorkletsAngleSink>> sinks;
+    {
+      std::lock_guard lock(sinksMutex_);
+      if (sinks_.empty()) {
+        throw std::runtime_error("AngleRuntimeHost has no active sinks");
+      }
+      sinks.reserve(sinks_.size());
+      for (const auto& [_, sink] : sinks_) {
+        sinks.push_back(sink);
+      }
+    }
+
+    const auto blocker = blockUI(sinks.front()->getScheduler());
+    try {
+      bridge_.emit(degrees);
+    } catch (...) {
+      releaseUI(blocker);
+      throw;
+    }
+    std::thread invalidator;
+    try {
+      invalidator = std::thread([this]() { bridge_.invalidate(); });
+    } catch (...) {
+      releaseUI(blocker);
+      throw;
+    }
+    for (const auto& sink : sinks) {
+      sink->waitUntilInactive();
+    }
+    releaseUI(blocker);
+    invalidator.join();
+    std::lock_guard lock(sinksMutex_);
+    sinks_.clear();
+  }
+
   void startSynthetic(double periodMilliseconds) {
+    if (!std::isfinite(periodMilliseconds) || periodMilliseconds < 0 ||
+        std::floor(periodMilliseconds) != periodMilliseconds ||
+        periodMilliseconds >
+            static_cast<double>(std::numeric_limits<std::int64_t>::max())) {
+      throw std::invalid_argument(
+          "AngleRuntimeHost synthetic period must be a finite nonnegative integer");
+    }
     stopSynthetic();
     syntheticRunning_.store(true);
     const auto period = std::chrono::milliseconds(
         std::max<std::int64_t>(1, static_cast<std::int64_t>(periodMilliseconds)));
     syntheticThread_ = std::thread([this, period]() {
-      double sequence = 0;
-      std::unique_lock lock(syntheticMutex_);
-      while (syntheticRunning_.load()) {
-        if (syntheticWake_.wait_for(
-                lock, period, [this]() { return !syntheticRunning_.load(); })) {
-          break;
+      try {
+        double sequence = 0;
+        std::unique_lock lock(syntheticMutex_);
+        while (syntheticRunning_.load()) {
+          if (syntheticWake_.wait_for(
+                  lock, period, [this]() { return !syntheticRunning_.load(); })) {
+            break;
+          }
+          lock.unlock();
+          bridge_.emit(++sequence);
+          lock.lock();
         }
-        lock.unlock();
-        bridge_.emit(++sequence);
-        lock.lock();
+      } catch (...) {
+        syntheticRunning_.store(false);
       }
     });
   }
@@ -241,9 +483,13 @@ class AngleRuntimeHostObject final : public HybridObject {
   void invalidate() {
     stopSynthetic();
     bridge_.invalidate();
+    std::lock_guard lock(sinksMutex_);
+    sinks_.clear();
   }
 
   AngleRuntimeBridge bridge_;
+  std::mutex sinksMutex_;
+  std::unordered_map<AngleSubscriptionId, std::shared_ptr<WorkletsAngleSink>> sinks_;
   std::atomic<bool> syntheticRunning_{false};
   std::mutex syntheticMutex_;
   std::condition_variable syntheticWake_;

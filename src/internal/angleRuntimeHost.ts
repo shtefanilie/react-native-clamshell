@@ -21,6 +21,8 @@ interface NativeAngleRuntimeHost
   ): number
   removeSink(subscriptionId: number): void
   emit(degrees: number): void
+  emitConcurrentlyAndRemove(subscriptionId: number, degrees: number): void
+  emitConcurrentlyAndInvalidate(degrees: number): void
   startSynthetic(periodMilliseconds: number): void
   stopSynthetic(): void
   collectGarbage(): void
@@ -29,10 +31,13 @@ interface NativeAngleRuntimeHost
 
 export interface AngleRuntimeProbeHost extends AngleRuntimeHost {
   emit(degrees: number): void
+  emitConcurrentlyAndRemove(subscriptionId: number, degrees: number): void
+  emitConcurrentlyAndInvalidate(degrees: number): void
   startSynthetic(periodMilliseconds: number): void
   stopSynthetic(): void
   collectGarbage(): void
   invalidate(): void
+  dispose(): void
 }
 
 declare global {
@@ -53,10 +58,18 @@ export function getAngleRuntimeHost(): AngleRuntimeProbeHost {
       },
       removeSink: id => nativeHost.removeSink(id),
       emit: degrees => nativeHost.emit(degrees),
+      emitConcurrentlyAndRemove: (id, degrees) =>
+        nativeHost.emitConcurrentlyAndRemove(id, degrees),
+      emitConcurrentlyAndInvalidate: degrees =>
+        nativeHost.emitConcurrentlyAndInvalidate(degrees),
       startSynthetic: period => nativeHost.startSynthetic(period),
       stopSynthetic: () => nativeHost.stopSynthetic(),
       collectGarbage: () => nativeHost.collectGarbage(),
       invalidate: () => nativeHost.invalidate(),
+      dispose: () => {
+        nativeHost.dispose()
+        globalThis.__CLAMSHELL_ANGLE_RUNTIME_HOST__ = undefined
+      },
     }
   }
   return globalThis.__CLAMSHELL_ANGLE_RUNTIME_HOST__

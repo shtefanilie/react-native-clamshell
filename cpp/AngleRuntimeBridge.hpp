@@ -15,6 +15,7 @@ class UIRuntimeAngleSink {
  public:
   virtual ~UIRuntimeAngleSink() = default;
   virtual void invoke(double degrees) = 0;
+  virtual void deactivateAndWait() noexcept = 0;
 };
 
 class AngleRuntimeBridge final {

@@ -43,8 +43,10 @@ state during dispatch.
   before invocation, so native emission never holds its lock while dispatching.
 - Each sink strongly retains its serialized worklet and UI scheduler, but only
   weakly retains the UI Worklet runtime.
-- A sink-owned lifetime token cancels jobs queued before removal or
-  invalidation. Repeated removal is harmless.
+- Each sink tracks active state and pending UI jobs under a mutex. Removal and
+  invalidation mark sinks inactive, cancel queued jobs before invocation, and
+  wait for queued or executing jobs to finish before returning. Repeated and
+  concurrent removal is harmless.
 - The probe forces Hermes GC through `jsi::Instrumentation::collectGarbage`;
   the retained native serializable remains callable.
 - `invalidate()` stops synthetic emission, clears all sinks, and makes future
@@ -66,6 +68,14 @@ state during dispatch.
 
 - `yarn test:worklet:android`: PASS, 1 suite and 2 tests.
 - `yarn test:worklet:ios`: PASS, 1 suite and 2 tests.
+- Durable Android output: `.superpowers/sdd/2026-09-16-clamshell-revised/task-3-fix1-android.log`.
+- Durable iOS output: `.superpowers/sdd/2026-09-16-clamshell-revised/task-3-fix1-ios.log`.
+
+Both platform artifacts cover official `isUIRuntime()` identity, native
+delivery during a two-second blocked JS interval, deterministic concurrent
+emit/remove, queued cancellation during invalidation, GC retention, and
+dispose/recreation. These ignored evidence paths are repository-relative so
+package documentation contains no machine-specific path.
 
 Full red/green results and root-cause evidence are recorded in
 `.superpowers/sdd/2026-09-16-clamshell-revised/task-3-report.md`.

@@ -18,7 +18,7 @@ describe('native angle UI-runtime bridge', () => {
     const first = makeMutable({ count: 0, degrees: 0, isUI: false })
     const second = makeMutable({ count: 0, degrees: 0, isUI: false })
 
-    let firstId = host.addSink(degrees => {
+    const firstId = host.addSink(degrees => {
       'worklet'
       first.value = {
         count: first.value.count + 1,
@@ -26,7 +26,7 @@ describe('native angle UI-runtime bridge', () => {
         isUI: isUIRuntime(),
       }
     })
-    const secondId = host.addSink(degrees => {
+    host.addSink(degrees => {
       'worklet'
       second.value = {
         count: second.value.count + 1,
@@ -43,31 +43,59 @@ describe('native angle UI-runtime bridge', () => {
     expect(first.value.degrees).toBe(42)
     expect(second.value.degrees).toBe(42)
 
-    host.startSynthetic(10)
-    const beforeBlock = second.value.count
-    const blockedUntil = Date.now() + 2000
-    while (Date.now() < blockedUntil) {
-      // Intentionally occupy the RN runtime. Native UI-runtime delivery must continue.
-    }
-    const afterBlock = second.value.count
-    expect(afterBlock).toBeGreaterThan(beforeBlock)
-    host.removeSink(firstId)
-    host.removeSink(firstId)
-    firstId = 0
-    await delay(100)
-    const firstAfterRemoval = first.value.count
-    await delay(100)
-    host.stopSynthetic()
+    expect(() => host.removeSink(Number.NaN)).toThrow()
+    expect(() => host.removeSink(1.5)).toThrow()
+    expect(() => host.removeSink(Number.MAX_SAFE_INTEGER + 1)).toThrow()
+    expect(() => host.startSynthetic(-1)).toThrow()
+    expect(() => host.startSynthetic(Number.POSITIVE_INFINITY)).toThrow()
 
-    expect(second.value.count).toBeGreaterThanOrEqual(afterBlock)
+    host.startSynthetic(10)
+    try {
+      const beforeBlock = second.value.count
+      const blockedUntil = Date.now() + 2000
+      while (Date.now() < blockedUntil) {
+        // Intentionally occupy the RN runtime. Native UI-runtime delivery must continue.
+      }
+      expect(second.value.count).toBeGreaterThan(beforeBlock)
+    } finally {
+      host.stopSynthetic()
+    }
+
+    const firstBeforeRemoval = first.value.count
+    const secondBeforeRemoval = second.value.count
+    host.emitConcurrentlyAndRemove(firstId, 43)
+    host.removeSink(firstId)
+    const firstAfterRemoval = first.value.count
+
+    expect(firstAfterRemoval).toBe(firstBeforeRemoval)
+    expect(second.value.count).toBeGreaterThan(secondBeforeRemoval)
+    const secondAfterRemoval = second.value.count
+    host.emit(44)
+    await delay(50)
     expect(first.value.count).toBe(firstAfterRemoval)
+    expect(second.value.count).toBeGreaterThan(secondAfterRemoval)
     expect(second.value.isUI).toBe(true)
 
-    host.removeSink(secondId)
-    const secondBeforeInvalidation = second.value.count
-    host.invalidate()
+    host.emitConcurrentlyAndInvalidate(45)
+    const secondAfterInvalidation = second.value.count
     host.emit(99)
-    await delay(100)
-    expect(second.value.count).toBe(secondBeforeInvalidation)
+    await delay(50)
+    expect(second.value.count).toBe(secondAfterInvalidation)
+
+    host.dispose()
+    const reloadedHost = getAngleRuntimeHost()
+    const reloaded = makeMutable(0)
+    const reloadedId = reloadedHost.addSink(degrees => {
+      'worklet'
+      reloaded.value = degrees
+    })
+    try {
+      reloadedHost.emit(7)
+      await delay(50)
+      expect(reloaded.value).toBe(7)
+    } finally {
+      reloadedHost.removeSink(reloadedId)
+      reloadedHost.dispose()
+    }
   })
 })
