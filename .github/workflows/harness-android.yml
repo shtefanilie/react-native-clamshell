@@ -17,9 +17,6 @@ on:
       - 'nitrogen/**'
       - '*.podspec'
       - 'package.json'
-      - 'bun.lock'
-      - 'pnpm-lock.yaml'
-      - 'package-lock.json'
       - 'yarn.lock'
       - 'react-native.config.js'
       - 'nitro.json'
@@ -34,9 +31,6 @@ on:
       - 'nitrogen/**'
       - '*.podspec'
       - 'package.json'
-      - 'bun.lock'
-      - 'pnpm-lock.yaml'
-      - 'package-lock.json'
       - 'yarn.lock'
       - 'react-native.config.js'
       - 'nitro.json'
@@ -61,11 +55,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22.11.0'
+          cache: 'yarn'
 
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install --immutable
 
       - name: Setup JDK 17
         uses: actions/setup-java@v5
@@ -75,10 +72,7 @@ jobs:
           cache: 'gradle'
 
       - name: Build Android app
-        working-directory: example/android
-        run: |
-          chmod +x ./gradlew
-          ./gradlew :app:assembleDebug --no-daemon --build-cache -PreactNativeArchitectures=${{ env.DEVICE_ARCH }}
+        run: yarn build:android:debug
 
       - name: Run React Native Harness
         uses: callstackincubator/react-native-harness@v1.2.0
@@ -86,7 +80,7 @@ jobs:
           app: android/app/build/outputs/apk/debug/app-debug.apk
           runner: android
           projectRoot: example
-          packageManager: npm
+          packageManager: yarn
 
       - name: Stop Gradle
         if: always()

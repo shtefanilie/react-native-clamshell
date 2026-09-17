@@ -17,9 +17,6 @@ on:
       - 'nitrogen/**'
       - '*.podspec'
       - 'package.json'
-      - 'bun.lock'
-      - 'pnpm-lock.yaml'
-      - 'package-lock.json'
       - 'yarn.lock'
       - 'react-native.config.js'
       - 'nitro.json'
@@ -34,9 +31,6 @@ on:
       - 'nitrogen/**'
       - '*.podspec'
       - 'package.json'
-      - 'bun.lock'
-      - 'pnpm-lock.yaml'
-      - 'package-lock.json'
       - 'yarn.lock'
       - 'react-native.config.js'
       - 'nitro.json'
@@ -54,23 +48,26 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22.11.0'
+          cache: 'yarn'
 
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install --immutable
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_26.5.app/Contents/Developer
 
       - name: Install Pods
-        working-directory: example
-        run: npm run pod
+        run: yarn pod
 
       - name: Build iOS app
-        working-directory: example/ios
-        run: |
-          set -o pipefail && xcodebuild             CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++             -derivedDataPath build -UseModernBuildSystem=YES             -workspace ClamshellExample.xcworkspace             -scheme ClamshellExample             -sdk iphonesimulator             -configuration Debug             build             CODE_SIGNING_ALLOWED=NO
+        env:
+          IOS_BUILD_CONFIGURATION: Debug
+          IOS_DERIVED_DATA_PATH: example/ios/build
+        run: yarn build:ios
 
       - name: Run React Native Harness
         uses: callstackincubator/react-native-harness@v1.2.0
@@ -78,4 +75,4 @@ jobs:
           app: ios/build/Build/Products/Debug-iphonesimulator/ClamshellExample.app
           runner: ios
           projectRoot: example
-          packageManager: npm
+          packageManager: yarn
