@@ -14,7 +14,14 @@ namespace margelo::nitro::clamshell {
     HybridObject::loadHybridMethods();
     // load custom methods/properties
     registerHybrids(this, [](Prototype& prototype) {
-      prototype.registerHybridMethod("sum", &HybridClamshellSpec::sum);
+      prototype.registerHybridMethod("getCapabilities", &HybridClamshellSpec::getCapabilities);
+      prototype.registerHybridMethod("addCapabilitiesListener", &HybridClamshellSpec::addCapabilitiesListener);
+      prototype.registerHybridMethod("getSnapshot", &HybridClamshellSpec::getSnapshot);
+      prototype.registerHybridMethod("addStateListener", &HybridClamshellSpec::addStateListener);
+      prototype.registerHybridMethod("startAngleUpdates", &HybridClamshellSpec::startAngleUpdates);
+      prototype.registerHybridMethod("stopAngleUpdates", &HybridClamshellSpec::stopAngleUpdates);
+      prototype.registerHybridMethod("addAngleListener", &HybridClamshellSpec::addAngleListener);
+      prototype.registerHybridMethod("addErrorListener", &HybridClamshellSpec::addErrorListener);
     });
   }
 

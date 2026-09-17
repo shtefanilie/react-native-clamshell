@@ -17,6 +17,10 @@ end
 target 'ClamshellExample' do
   config = use_native_modules!
 
+  target 'ClamshellTests' do
+    inherit! :complete
+  end
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.

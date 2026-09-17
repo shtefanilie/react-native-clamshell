@@ -20,6 +20,20 @@
                ReferencedContainer = "container:ClamshellExample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F65FBF5FE1ECDC6D7C5E774F"
+               BuildableName = "ClamshellTests.xctest"
+               BlueprintName = "ClamshellTests"
+               ReferencedContainer = "container:ClamshellExample.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

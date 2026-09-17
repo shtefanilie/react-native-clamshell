@@ -54,7 +54,14 @@ namespace margelo::nitro::clamshell {
 
   public:
     // Methods
-    double sum(double num1, double num2) override;
+    ClamshellCapabilities getCapabilities() override;
+    std::function<void()> addCapabilitiesListener(const std::function<void(const ClamshellCapabilities& /* value */)>& cb) override;
+    FoldState getSnapshot() override;
+    std::function<void()> addStateListener(const std::function<void(const FoldState& /* value */)>& cb) override;
+    void startAngleUpdates() override;
+    void stopAngleUpdates() override;
+    std::function<void()> addAngleListener(const std::function<void(double /* degrees */)>& cb) override;
+    std::function<void()> addErrorListener(const std::function<void(const ClamshellError& /* error */)>& cb) override;
 
   private:
     jni::global_ref<JHybridClamshellSpec::JavaPart> _javaPart;

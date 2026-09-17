@@ -13,7 +13,14 @@ public protocol HybridClamshellSpec_protocol: HybridObject {
   
 
   // Methods
-  func sum(num1: Double, num2: Double) throws -> Double
+  func getCapabilities() throws -> ClamshellCapabilities
+  func addCapabilitiesListener(cb: @escaping (_ value: ClamshellCapabilities) -> Void) throws -> () -> Void
+  func getSnapshot() throws -> FoldState
+  func addStateListener(cb: @escaping (_ value: FoldState) -> Void) throws -> () -> Void
+  func startAngleUpdates() throws -> Void
+  func stopAngleUpdates() throws -> Void
+  func addAngleListener(cb: @escaping (_ degrees: Double) -> Void) throws -> () -> Void
+  func addErrorListener(cb: @escaping (_ error: ClamshellError) -> Void) throws -> () -> Void
 }
 
 public extension HybridClamshellSpec_protocol {

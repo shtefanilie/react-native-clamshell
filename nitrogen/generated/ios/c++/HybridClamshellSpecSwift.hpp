@@ -12,9 +12,46 @@
 // Forward declaration of `HybridClamshellSpec_cxx` to properly resolve imports.
 namespace Clamshell { class HybridClamshellSpec_cxx; }
 
+// Forward declaration of `ClamshellCapabilities` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct ClamshellCapabilities; }
+// Forward declaration of `CapabilityDetectionStatus` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class CapabilityDetectionStatus; }
+// Forward declaration of `AngleRange` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct AngleRange; }
+// Forward declaration of `Posture` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class Posture; }
+// Forward declaration of `FoldState` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct FoldState; }
+// Forward declaration of `FoldOrientation` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class FoldOrientation; }
+// Forward declaration of `FoldGeometry` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct FoldGeometry; }
+// Forward declaration of `Rect` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct Rect; }
+// Forward declaration of `OcclusionType` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class OcclusionType; }
+// Forward declaration of `ClamshellError` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct ClamshellError; }
+// Forward declaration of `ClamshellErrorCode` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class ClamshellErrorCode; }
 
-
-
+#include "ClamshellCapabilities.hpp"
+#include "CapabilityDetectionStatus.hpp"
+#include <NitroModules/Null.hpp>
+#include "AngleRange.hpp"
+#include <variant>
+#include <optional>
+#include "Posture.hpp"
+#include <vector>
+#include <functional>
+#include "FoldState.hpp"
+#include "FoldOrientation.hpp"
+#include "FoldGeometry.hpp"
+#include "Rect.hpp"
+#include "OcclusionType.hpp"
+#include "ClamshellError.hpp"
+#include "ClamshellErrorCode.hpp"
+#include <string>
 
 #include "Clamshell-Swift-Cxx-Umbrella.hpp"
 
@@ -66,8 +103,60 @@ namespace margelo::nitro::clamshell {
 
   public:
     // Methods
-    inline double sum(double num1, double num2) override {
-      auto __result = _swiftPart.sum(std::forward<decltype(num1)>(num1), std::forward<decltype(num2)>(num2));
+    inline ClamshellCapabilities getCapabilities() override {
+      auto __result = _swiftPart.getCapabilities();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline std::function<void()> addCapabilitiesListener(const std::function<void(const ClamshellCapabilities& /* value */)>& cb) override {
+      auto __result = _swiftPart.addCapabilitiesListener(cb);
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline FoldState getSnapshot() override {
+      auto __result = _swiftPart.getSnapshot();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline std::function<void()> addStateListener(const std::function<void(const FoldState& /* value */)>& cb) override {
+      auto __result = _swiftPart.addStateListener(cb);
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline void startAngleUpdates() override {
+      auto __result = _swiftPart.startAngleUpdates();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+    }
+    inline void stopAngleUpdates() override {
+      auto __result = _swiftPart.stopAngleUpdates();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+    }
+    inline std::function<void()> addAngleListener(const std::function<void(double /* degrees */)>& cb) override {
+      auto __result = _swiftPart.addAngleListener(cb);
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline std::function<void()> addErrorListener(const std::function<void(const ClamshellError& /* error */)>& cb) override {
+      auto __result = _swiftPart.addErrorListener(cb);
       if (__result.hasError()) [[unlikely]] {
         std::rethrow_exception(__result.error());
       }

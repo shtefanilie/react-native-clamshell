@@ -31,7 +31,55 @@ abstract class HybridClamshellSpec: HybridObject() {
   // Methods
   @DoNotStrip
   @Keep
-  abstract fun sum(num1: Double, num2: Double): Double
+  abstract fun getCapabilities(): ClamshellCapabilities
+  
+  abstract fun addCapabilitiesListener(cb: (value: ClamshellCapabilities) -> Unit): () -> Unit
+  
+  @DoNotStrip
+  @Keep
+  private fun addCapabilitiesListener_cxx(cb: Func_void_ClamshellCapabilities): Func_void {
+    val __result = addCapabilitiesListener(cb)
+    return Func_void_java(__result)
+  }
+  
+  @DoNotStrip
+  @Keep
+  abstract fun getSnapshot(): FoldState
+  
+  abstract fun addStateListener(cb: (value: FoldState) -> Unit): () -> Unit
+  
+  @DoNotStrip
+  @Keep
+  private fun addStateListener_cxx(cb: Func_void_FoldState): Func_void {
+    val __result = addStateListener(cb)
+    return Func_void_java(__result)
+  }
+  
+  @DoNotStrip
+  @Keep
+  abstract fun startAngleUpdates(): Unit
+  
+  @DoNotStrip
+  @Keep
+  abstract fun stopAngleUpdates(): Unit
+  
+  abstract fun addAngleListener(cb: (degrees: Double) -> Unit): () -> Unit
+  
+  @DoNotStrip
+  @Keep
+  private fun addAngleListener_cxx(cb: Func_void_double): Func_void {
+    val __result = addAngleListener(cb)
+    return Func_void_java(__result)
+  }
+  
+  abstract fun addErrorListener(cb: (error: ClamshellError) -> Unit): () -> Unit
+  
+  @DoNotStrip
+  @Keep
+  private fun addErrorListener_cxx(cb: Func_void_ClamshellError): Func_void {
+    val __result = addErrorListener(cb)
+    return Func_void_java(__result)
+  }
 
   // Default implementation of `HybridObject.toString()`
   override fun toString(): String {

@@ -7,9 +7,67 @@
 
 #include "JHybridClamshellSpec.hpp"
 
+// Forward declaration of `ClamshellCapabilities` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct ClamshellCapabilities; }
+// Forward declaration of `CapabilityDetectionStatus` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class CapabilityDetectionStatus; }
+// Forward declaration of `AngleRange` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct AngleRange; }
+// Forward declaration of `Posture` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class Posture; }
+// Forward declaration of `FoldState` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct FoldState; }
+// Forward declaration of `FoldOrientation` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class FoldOrientation; }
+// Forward declaration of `FoldGeometry` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct FoldGeometry; }
+// Forward declaration of `Rect` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct Rect; }
+// Forward declaration of `OcclusionType` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class OcclusionType; }
+// Forward declaration of `ClamshellError` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct ClamshellError; }
+// Forward declaration of `ClamshellErrorCode` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class ClamshellErrorCode; }
 
-
-
+#include "ClamshellCapabilities.hpp"
+#include "JClamshellCapabilities.hpp"
+#include "CapabilityDetectionStatus.hpp"
+#include "JCapabilityDetectionStatus.hpp"
+#include <NitroModules/Null.hpp>
+#include "AngleRange.hpp"
+#include <variant>
+#include <optional>
+#include "JVariant_NullType_AngleRange.hpp"
+#include <NitroModules/JNull.hpp>
+#include "JAngleRange.hpp"
+#include "Posture.hpp"
+#include <vector>
+#include "JPosture.hpp"
+#include <functional>
+#include "JFunc_void.hpp"
+#include <NitroModules/JNICallable.hpp>
+#include "FoldState.hpp"
+#include "JFoldState.hpp"
+#include "JVariant_NullType_Double.hpp"
+#include "FoldOrientation.hpp"
+#include "JFoldOrientation.hpp"
+#include "FoldGeometry.hpp"
+#include "JVariant_NullType_FoldGeometry.hpp"
+#include "JFoldGeometry.hpp"
+#include "Rect.hpp"
+#include "JRect.hpp"
+#include "OcclusionType.hpp"
+#include "JOcclusionType.hpp"
+#include "JFunc_void_ClamshellCapabilities.hpp"
+#include "JFunc_void_FoldState.hpp"
+#include "JFunc_void_double.hpp"
+#include "ClamshellError.hpp"
+#include "JFunc_void_ClamshellError.hpp"
+#include "JClamshellError.hpp"
+#include "ClamshellErrorCode.hpp"
+#include "JClamshellErrorCode.hpp"
+#include <string>
 
 namespace margelo::nitro::clamshell {
 
@@ -44,10 +102,75 @@ namespace margelo::nitro::clamshell {
   
 
   // Methods
-  double JHybridClamshellSpec::sum(double num1, double num2) {
-    static const auto method = _javaPart->javaClassStatic()->getMethod<double(double /* num1 */, double /* num2 */)>("sum");
-    auto __result = method(_javaPart, num1, num2);
-    return __result;
+  ClamshellCapabilities JHybridClamshellSpec::getCapabilities() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JClamshellCapabilities>()>("getCapabilities");
+    auto __result = method(_javaPart);
+    return __result->toCpp();
+  }
+  std::function<void()> JHybridClamshellSpec::addCapabilitiesListener(const std::function<void(const ClamshellCapabilities& /* value */)>& cb) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void::javaobject>(jni::alias_ref<JFunc_void_ClamshellCapabilities::javaobject> /* cb */)>("addCapabilitiesListener_cxx");
+    auto __result = method(_javaPart, JFunc_void_ClamshellCapabilities_cxx::fromCpp(cb));
+    return [&]() -> std::function<void()> {
+      if (__result->isInstanceOf(JFunc_void_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void, void()>(std::move(__resultRef));
+      }
+    }();
+  }
+  FoldState JHybridClamshellSpec::getSnapshot() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFoldState>()>("getSnapshot");
+    auto __result = method(_javaPart);
+    return __result->toCpp();
+  }
+  std::function<void()> JHybridClamshellSpec::addStateListener(const std::function<void(const FoldState& /* value */)>& cb) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void::javaobject>(jni::alias_ref<JFunc_void_FoldState::javaobject> /* cb */)>("addStateListener_cxx");
+    auto __result = method(_javaPart, JFunc_void_FoldState_cxx::fromCpp(cb));
+    return [&]() -> std::function<void()> {
+      if (__result->isInstanceOf(JFunc_void_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void, void()>(std::move(__resultRef));
+      }
+    }();
+  }
+  void JHybridClamshellSpec::startAngleUpdates() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void()>("startAngleUpdates");
+    method(_javaPart);
+  }
+  void JHybridClamshellSpec::stopAngleUpdates() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void()>("stopAngleUpdates");
+    method(_javaPart);
+  }
+  std::function<void()> JHybridClamshellSpec::addAngleListener(const std::function<void(double /* degrees */)>& cb) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void::javaobject>(jni::alias_ref<JFunc_void_double::javaobject> /* cb */)>("addAngleListener_cxx");
+    auto __result = method(_javaPart, JFunc_void_double_cxx::fromCpp(cb));
+    return [&]() -> std::function<void()> {
+      if (__result->isInstanceOf(JFunc_void_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void, void()>(std::move(__resultRef));
+      }
+    }();
+  }
+  std::function<void()> JHybridClamshellSpec::addErrorListener(const std::function<void(const ClamshellError& /* error */)>& cb) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void::javaobject>(jni::alias_ref<JFunc_void_ClamshellError::javaobject> /* cb */)>("addErrorListener_cxx");
+    auto __result = method(_javaPart, JFunc_void_ClamshellError_cxx::fromCpp(cb));
+    return [&]() -> std::function<void()> {
+      if (__result->isInstanceOf(JFunc_void_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void, void()>(std::move(__resultRef));
+      }
+    }();
   }
 
 } // namespace margelo::nitro::clamshell

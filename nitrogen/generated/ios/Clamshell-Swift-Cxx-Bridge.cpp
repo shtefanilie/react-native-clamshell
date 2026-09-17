@@ -14,6 +14,46 @@
 
 namespace margelo::nitro::clamshell::bridge::swift {
 
+  // pragma MARK: std::function<void()>
+  Func_void create_Func_void(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = Clamshell::Func_void::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)]() mutable -> void {
+      swiftClosure.call();
+    };
+  }
+  
+  // pragma MARK: std::function<void(const ClamshellCapabilities& /* value */)>
+  Func_void_ClamshellCapabilities create_Func_void_ClamshellCapabilities(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = Clamshell::Func_void_ClamshellCapabilities::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const ClamshellCapabilities& value) mutable -> void {
+      swiftClosure.call(value);
+    };
+  }
+  
+  // pragma MARK: std::function<void(const FoldState& /* value */)>
+  Func_void_FoldState create_Func_void_FoldState(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = Clamshell::Func_void_FoldState::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const FoldState& value) mutable -> void {
+      swiftClosure.call(value);
+    };
+  }
+  
+  // pragma MARK: std::function<void(double /* degrees */)>
+  Func_void_double create_Func_void_double(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = Clamshell::Func_void_double::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](double degrees) mutable -> void {
+      swiftClosure.call(degrees);
+    };
+  }
+  
+  // pragma MARK: std::function<void(const ClamshellError& /* error */)>
+  Func_void_ClamshellError create_Func_void_ClamshellError(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = Clamshell::Func_void_ClamshellError::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const ClamshellError& error) mutable -> void {
+      swiftClosure.call(error);
+    };
+  }
+  
   // pragma MARK: std::shared_ptr<HybridClamshellSpec>
   std::shared_ptr<HybridClamshellSpec> create_std__shared_ptr_HybridClamshellSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
     Clamshell::HybridClamshellSpec_cxx swiftPart = Clamshell::HybridClamshellSpec_cxx::fromUnsafe(swiftUnsafePointer);

@@ -16,6 +16,11 @@
 #include <NitroModules/HybridObjectRegistry.hpp>
 
 #include "JHybridClamshellSpec.hpp"
+#include "JFunc_void.hpp"
+#include "JFunc_void_ClamshellCapabilities.hpp"
+#include "JFunc_void_FoldState.hpp"
+#include "JFunc_void_double.hpp"
+#include "JFunc_void_ClamshellError.hpp"
 #include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::clamshell {
@@ -41,6 +46,11 @@ void registerAllNatives() {
 
   // Register native JNI methods
   margelo::nitro::clamshell::JHybridClamshellSpec::CxxPart::registerNatives();
+  margelo::nitro::clamshell::JFunc_void_cxx::registerNatives();
+  margelo::nitro::clamshell::JFunc_void_ClamshellCapabilities_cxx::registerNatives();
+  margelo::nitro::clamshell::JFunc_void_FoldState_cxx::registerNatives();
+  margelo::nitro::clamshell::JFunc_void_double_cxx::registerNatives();
+  margelo::nitro::clamshell::JFunc_void_ClamshellError_cxx::registerNatives();
 
   // Register Nitro Hybrid Objects
   HybridObjectRegistry::registerHybridObjectConstructor(

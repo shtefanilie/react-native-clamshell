@@ -13,9 +13,17 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
+// Forward declaration of `ClamshellCapabilities` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct ClamshellCapabilities; }
+// Forward declaration of `FoldState` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct FoldState; }
+// Forward declaration of `ClamshellError` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct ClamshellError; }
 
-
-
+#include "ClamshellCapabilities.hpp"
+#include <functional>
+#include "FoldState.hpp"
+#include "ClamshellError.hpp"
 
 namespace margelo::nitro::clamshell {
 
@@ -48,7 +56,14 @@ namespace margelo::nitro::clamshell {
 
     public:
       // Methods
-      virtual double sum(double num1, double num2) = 0;
+      virtual ClamshellCapabilities getCapabilities() = 0;
+      virtual std::function<void()> addCapabilitiesListener(const std::function<void(const ClamshellCapabilities& /* value */)>& cb) = 0;
+      virtual FoldState getSnapshot() = 0;
+      virtual std::function<void()> addStateListener(const std::function<void(const FoldState& /* value */)>& cb) = 0;
+      virtual void startAngleUpdates() = 0;
+      virtual void stopAngleUpdates() = 0;
+      virtual std::function<void()> addAngleListener(const std::function<void(double /* degrees */)>& cb) = 0;
+      virtual std::function<void()> addErrorListener(const std::function<void(const ClamshellError& /* error */)>& cb) = 0;
 
     protected:
       // Hybrid Setup

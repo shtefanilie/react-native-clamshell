@@ -154,3 +154,9 @@ if (isNewArchitectureEnabled()) {
     codegenJavaPackageName = "com.clamshell"
   }
 }
+
+// Compile contract fixtures whenever the debug library is compiled, without
+// packaging those test-only classes into the runtime AAR.
+tasks.matching { it.name == "compileDebugKotlin" }.configureEach {
+  finalizedBy("compileDebugUnitTestKotlin")
+}

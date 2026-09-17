@@ -36,6 +36,9 @@ target_sources(
   ../nitrogen/generated/shared/c++/HybridClamshellSpec.cpp
   # Android-specific Nitrogen C++ sources
   ../nitrogen/generated/android/c++/JHybridClamshellSpec.cpp
+  ../nitrogen/generated/android/c++/JVariant_NullType_AngleRange.cpp
+  ../nitrogen/generated/android/c++/JVariant_NullType_Double.cpp
+  ../nitrogen/generated/android/c++/JVariant_NullType_FoldGeometry.cpp
 )
 
 # From node_modules/react-native/ReactAndroid/cmake-utils/folly-flags.cmake

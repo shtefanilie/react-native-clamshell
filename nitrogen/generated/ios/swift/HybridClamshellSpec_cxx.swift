@@ -125,14 +125,128 @@ open class HybridClamshellSpec_cxx {
 
   // Methods
   @inline(__always)
-  public final func sum(num1: Double, num2: Double) -> bridge.Result_double_ {
+  public final func getCapabilities() -> bridge.Result_ClamshellCapabilities_ {
     do {
-      let __result = try self.__implementation.sum(num1: num1, num2: num2)
+      let __result = try self.__implementation.getCapabilities()
       let __resultCpp = __result
-      return bridge.create_Result_double_(__resultCpp)
+      return bridge.create_Result_ClamshellCapabilities_(__resultCpp)
     } catch (let __error) {
       let __exceptionPtr = __error.toCpp()
-      return bridge.create_Result_double_(__exceptionPtr)
+      return bridge.create_Result_ClamshellCapabilities_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func addCapabilitiesListener(cb: bridge.Func_void_ClamshellCapabilities) -> bridge.Result_std__function_void____ {
+    do {
+      let __result = try self.__implementation.addCapabilitiesListener(cb: { () -> (ClamshellCapabilities) -> Void in
+        let __wrappedFunction = bridge.wrap_Func_void_ClamshellCapabilities(cb)
+        return { (__value: ClamshellCapabilities) -> Void in
+          __wrappedFunction.call(__value)
+        }
+      }())
+      let __resultCpp = { () -> bridge.Func_void in
+        let __closureWrapper = Func_void(__result)
+        return bridge.create_Func_void(__closureWrapper.toUnsafe())
+      }()
+      return bridge.create_Result_std__function_void____(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__function_void____(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func getSnapshot() -> bridge.Result_FoldState_ {
+    do {
+      let __result = try self.__implementation.getSnapshot()
+      let __resultCpp = __result
+      return bridge.create_Result_FoldState_(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_FoldState_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func addStateListener(cb: bridge.Func_void_FoldState) -> bridge.Result_std__function_void____ {
+    do {
+      let __result = try self.__implementation.addStateListener(cb: { () -> (FoldState) -> Void in
+        let __wrappedFunction = bridge.wrap_Func_void_FoldState(cb)
+        return { (__value: FoldState) -> Void in
+          __wrappedFunction.call(__value)
+        }
+      }())
+      let __resultCpp = { () -> bridge.Func_void in
+        let __closureWrapper = Func_void(__result)
+        return bridge.create_Func_void(__closureWrapper.toUnsafe())
+      }()
+      return bridge.create_Result_std__function_void____(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__function_void____(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func startAngleUpdates() -> bridge.Result_void_ {
+    do {
+      try self.__implementation.startAngleUpdates()
+      return bridge.create_Result_void_()
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_void_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func stopAngleUpdates() -> bridge.Result_void_ {
+    do {
+      try self.__implementation.stopAngleUpdates()
+      return bridge.create_Result_void_()
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_void_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func addAngleListener(cb: bridge.Func_void_double) -> bridge.Result_std__function_void____ {
+    do {
+      let __result = try self.__implementation.addAngleListener(cb: { () -> (Double) -> Void in
+        let __wrappedFunction = bridge.wrap_Func_void_double(cb)
+        return { (__degrees: Double) -> Void in
+          __wrappedFunction.call(__degrees)
+        }
+      }())
+      let __resultCpp = { () -> bridge.Func_void in
+        let __closureWrapper = Func_void(__result)
+        return bridge.create_Func_void(__closureWrapper.toUnsafe())
+      }()
+      return bridge.create_Result_std__function_void____(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__function_void____(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func addErrorListener(cb: bridge.Func_void_ClamshellError) -> bridge.Result_std__function_void____ {
+    do {
+      let __result = try self.__implementation.addErrorListener(cb: { () -> (ClamshellError) -> Void in
+        let __wrappedFunction = bridge.wrap_Func_void_ClamshellError(cb)
+        return { (__error: ClamshellError) -> Void in
+          __wrappedFunction.call(__error)
+        }
+      }())
+      let __resultCpp = { () -> bridge.Func_void in
+        let __closureWrapper = Func_void(__result)
+        return bridge.create_Func_void(__closureWrapper.toUnsafe())
+      }()
+      return bridge.create_Result_std__function_void____(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__function_void____(__exceptionPtr)
     }
   }
 }

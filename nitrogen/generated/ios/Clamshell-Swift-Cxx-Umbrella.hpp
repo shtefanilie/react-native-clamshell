@@ -8,14 +8,53 @@
 #pragma once
 
 // Forward declarations of C++ defined types
+// Forward declaration of `AngleRange` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct AngleRange; }
+// Forward declaration of `CapabilityDetectionStatus` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class CapabilityDetectionStatus; }
+// Forward declaration of `ClamshellCapabilities` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct ClamshellCapabilities; }
+// Forward declaration of `ClamshellErrorCode` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class ClamshellErrorCode; }
+// Forward declaration of `ClamshellError` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct ClamshellError; }
+// Forward declaration of `FoldGeometry` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct FoldGeometry; }
+// Forward declaration of `FoldOrientation` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class FoldOrientation; }
+// Forward declaration of `FoldState` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct FoldState; }
 // Forward declaration of `HybridClamshellSpec` to properly resolve imports.
 namespace margelo::nitro::clamshell { class HybridClamshellSpec; }
+// Forward declaration of `OcclusionType` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class OcclusionType; }
+// Forward declaration of `Posture` to properly resolve imports.
+namespace margelo::nitro::clamshell { enum class Posture; }
+// Forward declaration of `Rect` to properly resolve imports.
+namespace margelo::nitro::clamshell { struct Rect; }
 
 // Include C++ defined types
+#include "AngleRange.hpp"
+#include "CapabilityDetectionStatus.hpp"
+#include "ClamshellCapabilities.hpp"
+#include "ClamshellError.hpp"
+#include "ClamshellErrorCode.hpp"
+#include "FoldGeometry.hpp"
+#include "FoldOrientation.hpp"
+#include "FoldState.hpp"
 #include "HybridClamshellSpec.hpp"
+#include "OcclusionType.hpp"
+#include "Posture.hpp"
+#include "Rect.hpp"
+#include <NitroModules/Null.hpp>
 #include <NitroModules/Result.hpp>
 #include <exception>
+#include <functional>
 #include <memory>
+#include <optional>
+#include <string>
+#include <variant>
+#include <vector>
 
 // C++ helpers for Swift
 #include "Clamshell-Swift-Cxx-Bridge.hpp"
