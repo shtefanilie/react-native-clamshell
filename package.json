@@ -18,8 +18,10 @@
     "test:js": "jest --config jest.config.js --runInBand --no-watchman",
     "test:android": "./example/android/gradlew -p example/android :react-native-clamshell:testDebugUnitTest --tests '*ClamshellNativeTest.scaffoldLoads' --no-daemon",
     "test:ios": "yarn pod && ./scripts/run-ios-tests.sh testScaffold",
-    "test:worklets:android": "./example/android/gradlew -p example/android :react-native-clamshell:testDebugUnitTest --tests '*WorkletsBridgeIntegrationTest' --no-daemon",
-    "test:worklets:ios": "yarn pod && ./scripts/run-ios-tests.sh testWorkletsBridge",
+    "test:worklet:android": "./scripts/run-worklet-harness.sh android",
+    "test:worklet:ios": "./scripts/run-worklet-harness.sh ios",
+    "test:worklets:android": "yarn test:worklet:android",
+    "test:worklets:ios": "yarn test:worklet:ios",
     "build:android:debug": "./example/android/gradlew -p example/android :app:assembleDebug --no-daemon",
     "build:android:release": "./example/android/gradlew -p example/android :app:assembleRelease --no-daemon",
     "build:ios": "yarn pod && ./scripts/build-ios.sh"

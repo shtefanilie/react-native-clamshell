@@ -39,6 +39,7 @@ target_sources(
   ../nitrogen/generated/android/c++/JVariant_NullType_AngleRange.cpp
   ../nitrogen/generated/android/c++/JVariant_NullType_Double.cpp
   ../nitrogen/generated/android/c++/JVariant_NullType_FoldGeometry.cpp
+  ../cpp/AngleRuntimeBridge.cpp
 )
 
 # From node_modules/react-native/ReactAndroid/cmake-utils/folly-flags.cmake
@@ -61,6 +62,7 @@ target_compile_definitions(
 find_package(fbjni REQUIRED) # <-- Used for communication between Java <-> C++
 find_package(ReactAndroid REQUIRED) # <-- Used to set up React Native bindings (e.g. CallInvoker/TurboModule)
 find_package(react-native-nitro-modules REQUIRED) # <-- Used to create all HybridObjects and use the Nitro core library
+find_package(react-native-worklets REQUIRED CONFIG)
 
 # Link all libraries together
 target_link_libraries(
@@ -68,6 +70,7 @@ target_link_libraries(
         fbjni::fbjni                              # <-- Facebook C++ JNI helpers
         ReactAndroid::jsi                         # <-- RN: JSI
         react-native-nitro-modules::NitroModules  # <-- NitroModules Core :)
+        react-native-worklets::worklets
 )
 
 # Link react-native (different prefab between RN 0.75 and RN 0.76)

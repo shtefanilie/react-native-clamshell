@@ -11,6 +11,7 @@
 #import <type_traits>
 
 #include "HybridClamshellSpecSwift.hpp"
+#include "AngleRuntimeBridge.hpp"
 
 @interface ClamshellAutolinking : NSObject
 @end
@@ -20,6 +21,13 @@
 + (void) load {
   using namespace margelo::nitro;
   using namespace margelo::nitro::clamshell;
+
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "AngleRuntimeHost",
+    []() -> std::shared_ptr<HybridObject> {
+      return ::clamshell::createAngleRuntimeHostObject();
+    }
+  );
 
   HybridObjectRegistry::registerHybridObjectConstructor(
     "Clamshell",
