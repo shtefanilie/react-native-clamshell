@@ -13,7 +13,7 @@ Task 1 scaffold verification. Only this combination is currently tested.
 | AGP/Kotlin | 8.12.0 / 2.1.20 | generated project |
 | WindowManager/coroutines/lifecycle | 1.5.1 / 1.11.0 / 2.11.0 | host binding |
 | iOS deployment target | 15.1 | UIHingeInteraction guarded |
-| Xcode/Apple SDK | Xcode 26.2 (17C52) / iOS 26.2 | UIKit hinge prototype compiles |
+| Xcode/Apple SDK | Xcode 26.2 (17C52) / iOS 26.2 | `UIHingeInteraction` unavailable; Task 4 blocked |
 
 ## Resolution evidence
 
@@ -40,6 +40,17 @@ Task 1 scaffold verification. Only this combination is currently tested.
   `install_modules_dependencies` supplies React Native/Nitro integration.
 - Toolchain values were read from `xcodebuild -version` and `xcrun` for both
   `iphoneos` and `iphonesimulator`: Xcode 26.2, build 17C52, iOS SDK 26.2.
+
+## UIKit hinge API gate
+
+Task 4 is blocked with the installed toolchain. The compiler-generated UIKit
+symbol graph for the iOS 26.2 SDK contains no `UIHingeInteraction`, and a
+minimal UIKit probe guarded with `@available(iOS 27.1, *)` fails with
+`cannot find 'UIHingeInteraction' in scope`. Therefore this SDK provides no
+compiler-proven initializer, update callback, hinge context, status, or angle
+type to bind safely. Apple's current documentation lists the class as available
+starting in iOS/iPadOS 27.1, newer than the installed SDK and the package's 15.1
+deployment target.
 
 ## Consumer dependency policy
 
