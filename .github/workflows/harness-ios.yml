@@ -70,7 +70,7 @@ jobs:
         run: yarn build:ios
 
       - name: Run React Native Harness
-        uses: callstackincubator/react-native-harness@v1.2.0
+        uses: callstackincubator/react-native-harness@v1.5.0
         with:
           app: ios/build/Build/Products/Debug-iphonesimulator/ClamshellExample.app
           runner: ios
