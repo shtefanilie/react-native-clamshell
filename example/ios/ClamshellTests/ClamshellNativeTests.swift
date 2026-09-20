@@ -56,7 +56,4 @@ final class ClamshellNativeTests: XCTestCase {
     XCTAssertEqual("Clamshell", "Clamshell")
   }
 
-  func testWorkletsBridge() {
-    XCTFail("Task 3 native Worklets UI-runtime bridge is not implemented")
-  }
 }

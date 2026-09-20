@@ -1,5 +1,7 @@
 # Project-local planning artifacts
 docs/
+docs/verification.md
+docs/worklet-bridge.md
 .superpowers/
 
 # OSX

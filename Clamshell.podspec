@@ -17,9 +17,13 @@ Pod::Spec.new do |s|
     # Implementation (Swift)
     "ios/**/*.{swift}",
     # Autolinking/Registration (Objective-C++)
-    "ios/**/*.{m,mm}",
+    "ios/**/*.{h,m,mm}",
     # Implementation (C++ objects)
     "cpp/**/*.{hpp,cpp}",
+  ]
+
+  s.public_header_files = [
+    "ios/**/*.h",
   ]
 
   load 'nitrogen/generated/ios/Clamshell+autolinking.rb'

@@ -8,6 +8,8 @@
 
 #ifdef __ANDROID__
 #include <fbjni/fbjni.h>
+#include <NitroModules/JSIConverter.hpp>
+#include "JHybridClamshellSpec.hpp"
 #endif
 
 #include <algorithm>
@@ -116,6 +118,77 @@ void AngleRuntimeBridge::invalidate() noexcept {
   impl_->sinks.clear();
 }
 
+bool AngleRuntimeBridge::isInvalidated() const noexcept {
+  std::lock_guard lock(impl_->mutex);
+  return impl_->invalidated;
+}
+
+namespace {
+std::mutex channelsMutex;
+std::unordered_map<AngleChannelId, std::weak_ptr<AngleRuntimeBridge>> channels;
+AngleChannelId nextChannelId{1};
+AngleChannelId activeChannel{0};
+
+void bindAngleChannel(
+    AngleChannelId channel, const std::shared_ptr<AngleRuntimeBridge>& bridge) {
+  std::lock_guard lock(channelsMutex);
+  const auto entry = channels.find(channel);
+  if (entry == channels.end()) {
+    throw std::runtime_error("Clamshell angle producer is disposed");
+  }
+  const auto previous = entry->second.lock();
+  if (previous && previous != bridge && !previous->isInvalidated()) {
+    throw std::runtime_error("Clamshell angle producer already has a UI-runtime host");
+  }
+  entry->second = bridge;
+}
+} // namespace
+
+AngleChannelId createAngleChannel() {
+  std::lock_guard lock(channelsMutex);
+  if (nextChannelId > static_cast<AngleChannelId>(std::numeric_limits<std::int64_t>::max())) {
+    throw std::overflow_error("Clamshell angle channel IDs exhausted");
+  }
+  const auto channel = nextChannelId++;
+  channels.emplace(channel, std::weak_ptr<AngleRuntimeBridge>{});
+  return channel;
+}
+
+void activateAngleChannel(AngleChannelId channel) {
+  std::lock_guard lock(channelsMutex);
+  if (channels.find(channel) == channels.end()) {
+    throw std::runtime_error("Clamshell angle producer is disposed");
+  }
+  activeChannel = channel;
+}
+
+void emitAngleChannel(AngleChannelId channel, double degrees) {
+  if (!std::isfinite(degrees)) {
+    throw std::invalid_argument("Clamshell angle must be finite");
+  }
+  std::shared_ptr<AngleRuntimeBridge> bridge;
+  {
+    std::lock_guard lock(channelsMutex);
+    const auto entry = channels.find(channel);
+    if (entry != channels.end()) bridge = entry->second.lock();
+  }
+  // JS-only demand, or an already-disposed producer, has no UI sinks.
+  if (bridge) bridge->emit(degrees);
+}
+
+void releaseAngleChannel(AngleChannelId channel) noexcept {
+  std::shared_ptr<AngleRuntimeBridge> bridge;
+  {
+    std::lock_guard lock(channelsMutex);
+    const auto entry = channels.find(channel);
+    if (entry == channels.end()) return;
+    bridge = entry->second.lock();
+    channels.erase(entry);
+    if (activeChannel == channel) activeChannel = 0;
+  }
+  if (bridge) bridge->invalidate();
+}
+
 namespace {
 
 void scheduleOnUIAttached(
@@ -164,6 +237,10 @@ class WorkletsAngleSink final : public UIRuntimeAngleSink {
             {
               std::lock_guard lock(state->mutex);
               active = state->active;
+              if (active) {
+                ++state->executing;
+                state->executingThread = std::this_thread::get_id();
+              }
             }
             try {
               if (active) {
@@ -173,10 +250,10 @@ class WorkletsAngleSink final : public UIRuntimeAngleSink {
                 }
               }
             } catch (...) {
-              complete(state, completed);
+              complete(state, completed, active);
               throw;
             }
-            complete(state, completed);
+            complete(state, completed, active);
           });
     } catch (...) {
       complete(state, completed);
@@ -188,7 +265,9 @@ class WorkletsAngleSink final : public UIRuntimeAngleSink {
     std::unique_lock lock(state_->mutex);
     state_->active = false;
     state_->condition.notify_all();
-    state_->condition.wait(lock, [this]() { return state_->pending == 0; });
+    // Cancel queued work without waiting on the UI thread to service its own queue.
+    if (state_->executingThread == std::this_thread::get_id()) return;
+    state_->condition.wait(lock, [this]() { return state_->executing == 0; });
   }
 
   void waitUntilInactive() {
@@ -211,16 +290,21 @@ class WorkletsAngleSink final : public UIRuntimeAngleSink {
     std::condition_variable condition;
     bool active{true};
     std::size_t pending{0};
+    std::size_t executing{0};
+    std::thread::id executingThread;
   };
 
   static void complete(
       const std::shared_ptr<State>& state,
-      const std::shared_ptr<std::atomic<bool>>& completed) noexcept {
+      const std::shared_ptr<std::atomic<bool>>& completed,
+      bool executing = false) noexcept {
     if (completed->exchange(true)) {
       return;
     }
     std::lock_guard lock(state->mutex);
-    if (--state->pending == 0) {
+    --state->pending;
+    if (executing && --state->executing == 0) state->executingThread = {};
+    if (state->pending == 0 || state->executing == 0) {
       state->condition.notify_all();
     }
   }
@@ -279,13 +363,11 @@ class AngleRuntimeHostObject final : public HybridObject {
   AngleRuntimeHostObject() : HybridObject("AngleRuntimeHost") {}
 
   ~AngleRuntimeHostObject() override {
-    stopSynthetic();
-    bridge_.invalidate();
+    invalidate();
   }
 
   void dispose() override {
-    stopSynthetic();
-    bridge_.invalidate();
+    invalidate();
   }
 
  protected:
@@ -294,6 +376,8 @@ class AngleRuntimeHostObject final : public HybridObject {
     registerHybrids(this, [](margelo::nitro::Prototype& prototype) {
       prototype.registerRawHybridMethod(
           "addSink", 3, &AngleRuntimeHostObject::addSinkRaw);
+      prototype.registerRawHybridMethod(
+          "bindClamshell", 1, &AngleRuntimeHostObject::bindClamshellRaw);
       prototype.registerHybridMethod(
           "removeSink", &AngleRuntimeHostObject::removeSink);
       prototype.registerHybridMethod("emit", &AngleRuntimeHostObject::emit);
@@ -315,6 +399,37 @@ class AngleRuntimeHostObject final : public HybridObject {
   }
 
  private:
+  Value bindClamshellRaw(
+      Runtime& runtime, const Value&, const Value* arguments, std::size_t count) {
+    if (count != 1) throw std::invalid_argument("bindClamshell requires a native Clamshell");
+    AngleChannelId id = 0;
+#ifdef __ANDROID__
+    const auto producer =
+        margelo::nitro::JSIConverter<std::shared_ptr<margelo::nitro::clamshell::JHybridClamshellSpec>>::fromJSI(
+            runtime, arguments[0]);
+    jlong channel = 0;
+    facebook::jni::ThreadScope::WithClassLoader([&]() {
+      const auto& javaPart = producer->getJavaPart();
+      const auto getter = javaPart->getClass()->getMethod<jlong()>("getAngleChannelId");
+      channel = getter(javaPart);
+    });
+    if (channel <= 0) throw std::runtime_error("Clamshell angle producer is disposed");
+    id = static_cast<AngleChannelId>(channel);
+#else
+    {
+      std::lock_guard lock(channelsMutex);
+      id = activeChannel;
+    }
+    if (id == 0) throw std::runtime_error("Clamshell angle producer is disposed");
+#endif
+    if (boundChannel_ != 0 && boundChannel_ != id) {
+      throw std::runtime_error("A UI-runtime host cannot switch Clamshell producers");
+    }
+    bindAngleChannel(id, bridge_);
+    boundChannel_ = id;
+    return Value::undefined();
+  }
+
   Value addSinkRaw(
       Runtime& runtime,
       const Value&,
@@ -337,7 +452,7 @@ class AngleRuntimeHostObject final : public HybridObject {
 
     auto sink = std::make_shared<WorkletsAngleSink>(
         uiRuntime, uiScheduler, worklet);
-    const auto id = bridge_.addSink(sink);
+    const auto id = bridge_->addSink(sink);
     {
       std::lock_guard lock(sinksMutex_);
       sinks_[id] = sink;
@@ -347,14 +462,14 @@ class AngleRuntimeHostObject final : public HybridObject {
 
   void removeSink(double subscriptionId) {
     const auto id = validateSubscriptionId(subscriptionId);
-    bridge_.removeSink(id);
+    bridge_->removeSink(id);
     std::lock_guard lock(sinksMutex_);
     sinks_.erase(id);
   }
 
   void emit(double degrees) {
     validateDegrees(degrees);
-    bridge_.emit(degrees);
+    bridge_->emit(degrees);
   }
 
   void emitConcurrentlyAndRemove(double subscriptionId, double degrees) {
@@ -377,14 +492,14 @@ class AngleRuntimeHostObject final : public HybridObject {
 
     const auto blocker = blockUI(sink->getScheduler());
     try {
-      bridge_.emit(degrees);
+      bridge_->emit(degrees);
     } catch (...) {
       releaseUI(blocker);
       throw;
     }
     std::thread remover;
     try {
-      remover = std::thread([this, id]() { bridge_.removeSink(id); });
+      remover = std::thread([this, id]() { bridge_->removeSink(id); });
     } catch (...) {
       releaseUI(blocker);
       throw;
@@ -415,14 +530,14 @@ class AngleRuntimeHostObject final : public HybridObject {
 
     const auto blocker = blockUI(sinks.front()->getScheduler());
     try {
-      bridge_.emit(degrees);
+      bridge_->emit(degrees);
     } catch (...) {
       releaseUI(blocker);
       throw;
     }
     std::thread invalidator;
     try {
-      invalidator = std::thread([this]() { bridge_.invalidate(); });
+      invalidator = std::thread([this]() { bridge_->invalidate(); });
     } catch (...) {
       releaseUI(blocker);
       throw;
@@ -458,7 +573,7 @@ class AngleRuntimeHostObject final : public HybridObject {
             break;
           }
           lock.unlock();
-          bridge_.emit(++sequence);
+          bridge_->emit(++sequence);
           lock.lock();
         }
       } catch (...) {
@@ -482,12 +597,13 @@ class AngleRuntimeHostObject final : public HybridObject {
 
   void invalidate() {
     stopSynthetic();
-    bridge_.invalidate();
+    bridge_->invalidate();
     std::lock_guard lock(sinksMutex_);
     sinks_.clear();
   }
 
-  AngleRuntimeBridge bridge_;
+  std::shared_ptr<AngleRuntimeBridge> bridge_{std::make_shared<AngleRuntimeBridge>()};
+  AngleChannelId boundChannel_{0};
   std::mutex sinksMutex_;
   std::unordered_map<AngleSubscriptionId, std::shared_ptr<WorkletsAngleSink>> sinks_;
   std::atomic<bool> syntheticRunning_{false};

@@ -1,39 +1,66 @@
 package com.clamshell
 
-import com.margelo.nitro.clamshell.CapabilityDetectionStatus
+import android.util.Log
+import com.margelo.nitro.NitroModules
 import com.margelo.nitro.clamshell.ClamshellCapabilities
 import com.margelo.nitro.clamshell.ClamshellError
-import com.margelo.nitro.clamshell.FoldOrientation
 import com.margelo.nitro.clamshell.FoldState
 import com.margelo.nitro.clamshell.HybridClamshellSpec
-import com.margelo.nitro.clamshell.Posture
+import androidx.annotation.Keep
+import com.facebook.proguard.annotations.DoNotStrip
 
 class HybridClamshell : HybridClamshellSpec() {
-  override fun getCapabilities() = ClamshellCapabilities(
-    detectionStatus = CapabilityDetectionStatus.PENDING,
-    isFoldable = false,
-    hasContinuousAngle = false,
-    angleRange = null,
-    supportedPostures = emptyArray(),
-    hasFoldGeometry = false,
-  )
+  private val context = checkNotNull(NitroModules.applicationContext) {
+    "Clamshell requires an active Nitro React context"
+  }
+  private val lifecycle = checkNotNull(context.getNativeModule(ClamshellLifecycleModule::class.java)) {
+    "ClamshellLifecycle native module is not linked"
+  }
+  private val resources = ClamshellResources(context)
 
-  override fun addCapabilitiesListener(cb: (ClamshellCapabilities) -> Unit): () -> Unit = {}
+  init {
+    try {
+      lifecycle.track(resources)
+      resources.start()
+    } catch (error: Exception) {
+      resources.close()
+      lifecycle.untrack(resources)
+      throw error
+    }
+  }
 
-  override fun getSnapshot() = FoldState(
-    angle = null,
-    posture = Posture.UNKNOWN,
-    orientation = FoldOrientation.NONE,
-    geometry = null,
-  )
+  @Keep
+  @DoNotStrip
+  fun getAngleChannelId(): Long = resources.angleChannelId
 
-  override fun addStateListener(cb: (FoldState) -> Unit): () -> Unit = {}
+  override fun dispose() {
+    try {
+      releaseResources()
+    } finally {
+      super.dispose()
+    }
+  }
 
-  override fun startAngleUpdates() = Unit
+  override fun getCapabilities() = resources.coordinator.getCapabilities()
+  override fun addCapabilitiesListener(cb: (ClamshellCapabilities) -> Unit) =
+    resources.coordinator.addCapabilitiesListener(cb)
+  override fun getSnapshot() = resources.coordinator.getSnapshot()
+  override fun addStateListener(cb: (FoldState) -> Unit) = resources.coordinator.addStateListener(cb)
+  override fun startAngleUpdates() = resources.coordinator.startAngleUpdates()
+  override fun stopAngleUpdates() = resources.coordinator.stopAngleUpdates()
+  override fun addAngleListener(cb: (Double) -> Unit) = resources.coordinator.addAngleListener(cb)
+  override fun addErrorListener(cb: (ClamshellError) -> Unit) = resources.coordinator.addErrorListener(cb)
 
-  override fun stopAngleUpdates() = Unit
+  private fun releaseResources() {
+    try {
+      resources.close()
+    } catch (error: Exception) {
+      Log.e("Clamshell", "Failed to release native resources", error)
+    } finally {
+      lifecycle.untrack(resources)
+    }
+  }
 
-  override fun addAngleListener(cb: (Double) -> Unit): () -> Unit = {}
-
-  override fun addErrorListener(cb: (ClamshellError) -> Unit): () -> Unit = {}
+  @Suppress("unused")
+  protected fun finalize() { releaseResources() }
 }

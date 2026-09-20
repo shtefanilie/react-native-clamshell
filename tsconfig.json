@@ -6,6 +6,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
+    "types": ["jest"],
     "lib": ["esnext"],
     "module": "esnext",
     "moduleResolution": "bundler",

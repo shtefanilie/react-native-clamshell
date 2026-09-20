@@ -1,5 +1,7 @@
 import type { HybridObject } from 'react-native-nitro-modules'
 import { NitroModules } from 'react-native-nitro-modules'
+import { nativeClamshell } from '../native'
+import type { Clamshell } from '../specs/Clamshell.nitro'
 import {
   createSerializable,
   getUIRuntimeHolder,
@@ -14,6 +16,7 @@ export interface AngleRuntimeHost {
 
 interface NativeAngleRuntimeHost
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+  bindClamshell(producer: Clamshell): void
   addSink(
     worklet: SerializableRef<(degrees: number) => void>,
     uiRuntimeHolder: object,
@@ -48,10 +51,16 @@ export function getAngleRuntimeHost(): AngleRuntimeProbeHost {
   if (globalThis.__CLAMSHELL_ANGLE_RUNTIME_HOST__ == null) {
     const nativeHost =
       NitroModules.createHybridObject<NativeAngleRuntimeHost>('AngleRuntimeHost')
+    try {
+      nativeHost.bindClamshell(nativeClamshell)
+    } catch (error) {
+      nativeHost.dispose()
+      throw error
+    }
     globalThis.__CLAMSHELL_ANGLE_RUNTIME_HOST__ = {
       addSink(worklet) {
         return nativeHost.addSink(
-          createSerializable(worklet, true),
+          createSerializable(worklet),
           getUIRuntimeHolder(),
           getUISchedulerHolder()
         )

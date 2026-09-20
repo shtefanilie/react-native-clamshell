@@ -19,4 +19,74 @@ const androidWorkaround = async () => {
   const str = await readFile(androidOnLoadFile, { encoding: 'utf8' })
   await writeFile(androidOnLoadFile, str.replace(/margelo\/nitro\//g, ''))
 }
-androidWorkaround()
+
+const applyAndroidWorkletsBridge = async () => {
+  const androidAutolinkingFile = path.join(
+    process.cwd(),
+    'nitrogen/generated/android',
+    'Clamshell+autolinking.cmake'
+  )
+
+  let str = await readFile(androidAutolinkingFile, { encoding: 'utf8' })
+  if (!str.includes('../cpp/AngleRuntimeBridge.cpp')) {
+    str = str.replace(
+      '  ../nitrogen/generated/android/c++/JVariant_NullType_FoldGeometry.cpp\n',
+      '  ../nitrogen/generated/android/c++/JVariant_NullType_FoldGeometry.cpp\n  ../cpp/AngleRuntimeBridge.cpp\n'
+    )
+  }
+  if (!str.includes('find_package(react-native-worklets REQUIRED CONFIG)')) {
+    str = str.replace(
+      'find_package(react-native-nitro-modules REQUIRED) # <-- Used to create all HybridObjects and use the Nitro core library\n',
+      'find_package(react-native-nitro-modules REQUIRED) # <-- Used to create all HybridObjects and use the Nitro core library\nfind_package(react-native-worklets REQUIRED CONFIG)\n'
+    )
+  }
+  if (!str.includes('react-native-worklets::worklets')) {
+    str = str.replace(
+      '        react-native-nitro-modules::NitroModules  # <-- NitroModules Core :)\n',
+      '        react-native-nitro-modules::NitroModules  # <-- NitroModules Core :)\n        react-native-worklets::worklets\n'
+    )
+  }
+
+  await writeFile(androidAutolinkingFile, str)
+}
+
+const applyIosWorkletsBridge = async () => {
+  const iosAutolinkingFile = path.join(
+    process.cwd(),
+    'nitrogen/generated/ios',
+    'ClamshellAutolinking.mm'
+  )
+
+  let str = await readFile(iosAutolinkingFile, { encoding: 'utf8' })
+  if (!str.includes('#include "AngleRuntimeBridge.hpp"')) {
+    str = str.replace(
+      '#include "HybridClamshellSpecSwift.hpp"\n',
+      '#include "HybridClamshellSpecSwift.hpp"\n#include "AngleRuntimeBridge.hpp"\n'
+    )
+  }
+  if (!str.includes('"AngleRuntimeHost"')) {
+    str = str.replace(
+      '  using namespace margelo::nitro::clamshell;\n\n',
+      `  using namespace margelo::nitro::clamshell;
+
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "AngleRuntimeHost",
+    []() -> std::shared_ptr<HybridObject> {
+      return ::clamshell::createAngleRuntimeHostObject();
+    }
+  );
+
+`
+    )
+  }
+
+  await writeFile(iosAutolinkingFile, str)
+}
+
+const run = async () => {
+  await androidWorkaround()
+  await applyAndroidWorkletsBridge()
+  await applyIosWorkletsBridge()
+}
+
+run()
