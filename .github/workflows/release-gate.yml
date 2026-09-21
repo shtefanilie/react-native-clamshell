@@ -1,0 +1,126 @@
+name: Release Gate
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/release-gate.yml'
+      - 'android/**'
+      - 'cpp/**'
+      - 'ios/**'
+      - 'src/**'
+      - 'nitrogen/**'
+      - 'example/**'
+      - 'scripts/**'
+      - 'docs/**'
+      - '*.podspec'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'react-native.config.js'
+      - 'nitro.json'
+  pull_request:
+    paths:
+      - '.github/workflows/release-gate.yml'
+      - 'android/**'
+      - 'cpp/**'
+      - 'ios/**'
+      - 'src/**'
+      - 'nitrogen/**'
+      - 'example/**'
+      - 'scripts/**'
+      - 'docs/**'
+      - '*.podspec'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'react-native.config.js'
+      - 'nitro.json'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  js-and-package:
+    name: JS, codegen, and package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.0'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Verify generated output is clean
+        run: yarn check:generated
+      - name: Run JS tests
+        run: yarn test:js
+      - name: Typecheck
+        run: yarn typecheck
+      - name: Lint
+        run: yarn lint
+      - name: Build package outputs
+        run: yarn build
+      - name: Check package contents
+        run: yarn check:package
+
+  android:
+    name: Android release gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.0'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn install --immutable
+      - uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: '17'
+          cache: gradle
+      - name: Run Android JVM tests
+        run: yarn test:android
+      - name: Build Android debug example
+        run: yarn build:android:debug
+      - name: Build Android release example
+        run: yarn build:android:release
+      - name: Stop Gradle daemon
+        if: always()
+        working-directory: example/android
+        run: ./gradlew --stop
+
+  worklet-runtime:
+    name: Worklet runtime release tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.0'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn install --immutable
+      - uses: actions/setup-java@v5
+        if: matrix.platform == 'android'
+        with:
+          distribution: zulu
+          java-version: '17'
+          cache: gradle
+      - name: Run Worklets harness
+        run: yarn test:worklet:${{ matrix.platform }}
