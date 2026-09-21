@@ -18,7 +18,7 @@ target 'ClamshellExample' do
   config = use_native_modules!
 
   target 'ClamshellTests' do
-    inherit! :complete
+    inherit! :search_paths
   end
 
   use_react_native!(
