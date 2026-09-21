@@ -10,6 +10,7 @@ class HybridObject;
 namespace clamshell {
 
 using AngleSubscriptionId = std::uint64_t;
+using AngleChannelId = std::uint64_t;
 
 class UIRuntimeAngleSink {
  public:
@@ -30,6 +31,7 @@ class AngleRuntimeBridge final {
   void removeSink(AngleSubscriptionId id) noexcept;
   void emit(double degrees);
   void invalidate() noexcept;
+  bool isInvalidated() const noexcept;
 
  private:
   struct Impl;
@@ -38,5 +40,9 @@ class AngleRuntimeBridge final {
 
 void registerAngleRuntimeHost();
 std::shared_ptr<margelo::nitro::HybridObject> createAngleRuntimeHostObject();
+AngleChannelId createAngleChannel();
+void activateAngleChannel(AngleChannelId channel);
+void emitAngleChannel(AngleChannelId channel, double degrees);
+void releaseAngleChannel(AngleChannelId channel) noexcept;
 
 } // namespace clamshell
