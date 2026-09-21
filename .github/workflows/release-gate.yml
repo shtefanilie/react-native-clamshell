@@ -53,7 +53,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.14.0'
-          cache: yarn
       - name: Enable Corepack
         run: corepack enable
       - name: Install dependencies
@@ -79,7 +78,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.14.0'
-          cache: yarn
       - name: Enable Corepack
         run: corepack enable
       - name: Install dependencies
@@ -100,35 +98,6 @@ jobs:
         working-directory: example/android
         run: ./gradlew --stop
 
-  ios:
-    name: iOS release gate
-    runs-on: macos-26
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.14.0'
-          cache: yarn
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Install dependencies
-        run: yarn install --immutable
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3.0'
-          bundler-cache: true
-          working-directory: example
-      - name: Install Pods
-        run: yarn pod
-      - name: Run iOS native tests
-        run: yarn test:ios
-      - name: Build iOS release example
-        env:
-          IOS_DERIVED_DATA_PATH: example/ios/build
-        run: yarn build:ios
-
   worklet-runtime:
     name: Worklet runtime release tests
     strategy:
@@ -137,15 +106,12 @@ jobs:
         include:
           - platform: android
             os: ubuntu-latest
-          - platform: ios
-            os: macos-26
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '24.14.0'
-          cache: yarn
       - name: Enable Corepack
         run: corepack enable
       - name: Install dependencies
@@ -156,14 +122,5 @@ jobs:
           distribution: zulu
           java-version: '17'
           cache: gradle
-      - uses: ruby/setup-ruby@v1
-        if: matrix.platform == 'ios'
-        with:
-          ruby-version: '3.3.0'
-          bundler-cache: true
-          working-directory: example
-      - name: Select Xcode
-        if: matrix.platform == 'ios'
-        run: sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
       - name: Run Worklets harness
         run: yarn test:worklet:${{ matrix.platform }}

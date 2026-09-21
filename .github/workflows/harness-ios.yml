@@ -3,37 +3,9 @@ name: Run React Native Harness iOS
 permissions:
   contents: read
 
+# Parked: GitHub-hosted runners do not provide the Xcode 27.1 SDK required
+# by UIHingeInteraction. Resume pull-request triggers when that SDK is available.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/harness-ios.yml'
-      - 'example/**'
-      - 'android/**'
-      - 'ios/**'
-      - 'cpp/**'
-      - 'src/**'
-      - 'nitrogen/**'
-      - '*.podspec'
-      - 'package.json'
-      - 'yarn.lock'
-      - 'react-native.config.js'
-      - 'nitro.json'
-  pull_request:
-    paths:
-      - '.github/workflows/harness-ios.yml'
-      - 'example/**'
-      - 'android/**'
-      - 'ios/**'
-      - 'cpp/**'
-      - 'src/**'
-      - 'nitrogen/**'
-      - '*.podspec'
-      - 'package.json'
-      - 'yarn.lock'
-      - 'react-native.config.js'
-      - 'nitro.json'
   workflow_dispatch:
 
 concurrency:
@@ -49,7 +21,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.14.0'
-          cache: 'yarn'
 
       - name: Enable Corepack
         run: corepack enable
