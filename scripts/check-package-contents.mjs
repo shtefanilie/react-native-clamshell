@@ -3,6 +3,7 @@ import { rmSync } from 'node:fs'
 
 const requiredEntries = [
   'README.md',
+  'docs/api.md',
   'lib/commonjs/index.js',
   'lib/module/index.js',
   'lib/typescript/src/index.d.ts',

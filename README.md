@@ -8,37 +8,15 @@ methods/listeners and continuous hinge angle updates through a native Worklets
 UI-runtime bridge. Angle animation does not depend on a JavaScript listener or
 JS-thread scheduling fallback.
 
-**Release status:** implementation and example diagnostics are complete for
-the current dependency matrix. Android posture and geometry are verified on a
-Samsung SM-F936B foldable. Its public hinge sensor emits only 0, 90, and 180
-degree samples on the tested firmware; continuous angle delivery remains
-emulator-verified. Real iOS 27.1 hinge delivery remains unverified.
-
 [![Version](https://img.shields.io/npm/v/react-native-clamshell.svg)](https://www.npmjs.com/package/react-native-clamshell)
 [![Downloads](https://img.shields.io/npm/dm/react-native-clamshell.svg)](https://www.npmjs.com/package/react-native-clamshell)
 [![License](https://img.shields.io/npm/l/react-native-clamshell.svg)](https://github.com/stefanilie/react-native-clamshell/blob/main/LICENSE)
 
-## Requirements
-
-- React 19.2.3
-- React Native 0.86.0 with the New Architecture enabled
-- React Native Nitro Modules 0.37.1
-- React Native Reanimated 4.6.0
-- React Native Worklets 0.12.2
-- Android compile SDK 36 and Java 17 for the example/release gate
-- iOS deployment target 15.1 or newer
-- Xcode 27.1 SDK to compile `UIHingeInteraction` support
-- Node 24.14.0 and Yarn 4.9.2 for the verified repository toolchain
-
-The package declares React, React Native, Nitro Modules, Reanimated, and
-Worklets as exact peer dependencies.
-
 ## Installation
 
 ```sh
-yarn add react-native-clamshell react@19.2.3 react-native@0.86.0 \
-  react-native-nitro-modules@0.37.1 react-native-reanimated@4.6.0 \
-  react-native-worklets@0.12.2
+yarn add react-native-clamshell react-native-nitro-modules \
+  react-native-reanimated react-native-worklets
 ```
 
 Configure the Worklets Babel plugin last:
@@ -57,32 +35,13 @@ yarn android # or your app's Android build
 yarn ios     # or your app's iOS build
 ```
 
-## Capability readiness
-
-Capability detection is explicit:
-
-- `pending` means native detection has not resolved yet.
-- `resolved` with `isFoldable: false` means the current device/runtime
-  is confirmed unsupported.
-- Unsupported hardware is reported as capability state, not as an error.
-- Later supporting evidence may move a device from unresolved/unsupported to
-  foldable; angle subscriptions keep a native demand lease while mounted.
-
-Do not treat `pending` as unsupported in UI.
-
-## Hooks
+## Usage
 
 ```tsx
-import {
-  useClamshellCapabilities,
-  useFoldState,
-  useHingeAngle,
-} from 'react-native-clamshell'
-import { useAnimatedStyle } from 'react-native-reanimated'
+import { useHingeAngle } from 'react-native-clamshell'
+import Animated, { useAnimatedStyle } from 'react-native-reanimated'
 
 export function FoldIndicator() {
-  const capabilities = useClamshellCapabilities()
-  const foldState = useFoldState()
   const hingeAngle = useHingeAngle()
 
   const style = useAnimatedStyle(() => ({
@@ -90,75 +49,13 @@ export function FoldIndicator() {
     transform: [{ rotate: `${hingeAngle.value ?? 0}deg` }],
   }))
 
-  return { capabilities, foldState, style }
+  return <Animated.View style={style} />
 }
 ```
 
-`useFoldState()` returns the native snapshot store for posture, root-relative
-fold geometry, and the latest cached angle. `useClamshellCapabilities()`
-returns the native capability store. Both hooks use stable external stores;
-angle-only samples do not rerender React.
-
-`useHingeAngle()` returns `SharedValue<number | null>`. `null` means unsupported
-or no sample yet. `0` is a valid angle sample. Read this value inside Worklets
-UI-runtime worklets, not during React render.
-
-## Imperative facade
-
-```ts
-import { Clamshell } from 'react-native-clamshell'
-
-const snapshot = Clamshell.getSnapshot()
-const capabilities = Clamshell.getCapabilities()
-
-const offState = Clamshell.onStateChange((next) => {
-  console.log(next.posture, next.geometry)
-})
-
-const offCapabilities = Clamshell.onCapabilitiesChange((next) => {
-  console.log(next.detectionStatus, next.isFoldable)
-})
-
-const offAngle = Clamshell.onAngle((degrees) => {
-  console.log('JS-side angle work:', degrees)
-})
-
-const offError = Clamshell.onError((error) => {
-  console.error(error.code, error.message)
-})
-
-offAngle()
-offCapabilities()
-offState()
-offError()
-```
-
-Every listener returns an independent, idempotent unsubscribe function.
-Consumer callback exceptions are reported with a `[react-native-clamshell]`
-console error and do not block other listeners. Unexpected setup/cleanup faults
-surface explicitly.
-
-Use `onAngle` for JS-side reactions, telemetry, or diagnostics. Do not use it
-for animation; `useHingeAngle()` is the native UI-runtime path.
-
-## Coordinates and lifecycle
-
-Android geometry bounds are React Native root-view-relative DIP. The fold
-feature may have zero width or height, so diagnostics draw a minimum visible
-overlay while preserving the measured value in text. iOS geometry is `null`
-until Apple exposes a verified root-relative geometry source for the runtime.
-
-Native coordinators own lifecycle, foreground/background suspension, physical
-sensor registration, host attachment, listener cleanup, and Worklets sink
-invalidation. UI-runtime sinks are removed before the corresponding native
-demand lease is released.
-
-## Errors
-
-Typed errors are reserved for native registration, permission/security, host
-attachment, or invalid native-delivery faults. Lack of foldable hardware,
-missing iOS 27.1 runtime support, or lack of a current angle sample are normal
-capability/snapshot states.
+`useHingeAngle()` returns a Reanimated shared value updated directly on the UI
+runtime. See the [API guide](docs/api.md) for hooks, imperative subscriptions,
+capability readiness, lifecycle behavior, errors, and exported types.
 
 ## Foldable capability matrix
 
@@ -169,13 +66,13 @@ unverified behavior requires a runtime probe on the target device.
 Legend: `✅ confirmed working`, `⚠️ partial, device-dependent, or unverified`,
 `❌ unavailable`.
 
-| Brand and models | Public angle | Posture | Geometry | Evidence/limits |
-|---|---|---|---|---|
-| Honor: Magic V3, Magic V5 | ⚠️ Unknown; runtime probe required | ⚠️ Modern global builds are expected to expose WindowManager posture, but require runtime verification | ⚠️ WindowManager bounds, orientation, occlusion, and separation are expected, but require runtime verification | ⚠️ No physical-device evidence is available |
-| Samsung: Galaxy Z Flip6, Galaxy Z Fold6, Galaxy Z Fold7, Galaxy Z Flip5, Galaxy Z Flip7, Galaxy Z Fold5 | ⚠️ Device/firmware-dependent; project-local hardware observation of 0/90/180 on SM-F936B, with additional developer reports for Flip5 and Fold7 | ⚠️ WindowManager exposes `FLAT`/`HALF_OPENED` where supported; verify per device/runtime | ⚠️ WindowManager exposes orientation, bounds, occlusion, and separation where supported; verify per device/runtime | ⚠️ Project-local hardware observation: continuous private sensor access uses the signature permission `com.samsung.permission.SSENSOR`, unavailable to ordinary third-party apps; Flip5/Fold7 evidence is non-OEM |
-| Google: Pixel 9 Pro Fold, Pixel 10 Pro Fold | ⚠️ Approximately 5-degree steps in non-OEM developer reports; provisional | ⚠️ WindowManager posture expected; runtime verification required per build | ⚠️ WindowManager geometry expected; runtime verification required per build | ⚠️ No physical verification; reported angle behavior must not be treated as verified |
-| Motorola: Razr 50 Ultra, Razr 40 Ultra, Razr 40, Razr 60 Ultra, Razr 50, Razr 60, Razr 2022 | ⚠️ Mixed: standard `TYPE_HINGE_ANGLE` is confirmed present on stock Razr 50 Ultra, has normal-app implementation evidence for Razr 50, and is strongly supported/configured on Razr 40 Ultra; exact granularity is unknown; Razr 40, the Razr 60 family, and Razr 2022 need physical runtime probes | ⚠️ WindowManager/device-state support is expected and partially evidenced; horizontal fold, but exact `FoldingFeature` output requires per-SKU/firmware verification | ⚠️ WindowManager/device-state support is expected and partially evidenced; horizontal fold, but exact `FoldingFeature` bounds require per-SKU/firmware verification | ⚠️ Evidence is mixed and incomplete; missing evidence is not evidence of absence |
-| iPhone Duo | ⚠️ Public iOS 27.1 `UIHinge.angle` (`CGFloat` radians) and SwiftUI `DeviceHinge.angle` exist, but rate/granularity and physical behavior are unspecified/unverified | ⚠️ Public `closed`/`partiallyOpen`/`fullyOpen`/`unknown` status API is documented but physically unverified | ⚠️ Public reserved-region APIs document frame, margins, active state, and division/occlusion kinds, but physical behavior is unverified | ⚠️ Ordinary public APIs with no documented entitlement, but retail hardware was unavailable at the 2026-09-23 cutoff and simulator fidelity is unverified |
+| Brand and models                                                                                        | Public angle                                                                                                                                                                                                                                                                                        | Posture                                                                                                                                                              | Geometry                                                                                                                                                            | Evidence/limits                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Honor: Magic V3, Magic V5                                                                               | ⚠️ Unknown; runtime probe required                                                                                                                                                                                                                                                                  | ⚠️ Modern global builds are expected to expose WindowManager posture, but require runtime verification                                                               | ⚠️ WindowManager bounds, orientation, occlusion, and separation are expected, but require runtime verification                                                      | ⚠️ No physical-device evidence is available                                                                                                                                                                       |
+| Samsung: Galaxy Z Flip6, Galaxy Z Fold6, Galaxy Z Fold7, Galaxy Z Flip5, Galaxy Z Flip7, Galaxy Z Fold5 | ⚠️ Device/firmware-dependent; project-local hardware observation of 0/90/180 on SM-F936B, with additional developer reports for Flip5 and Fold7                                                                                                                                                     | ⚠️ WindowManager exposes `FLAT`/`HALF_OPENED` where supported; verify per device/runtime                                                                             | ⚠️ WindowManager exposes orientation, bounds, occlusion, and separation where supported; verify per device/runtime                                                  | ⚠️ Project-local hardware observation: continuous private sensor access uses the signature permission `com.samsung.permission.SSENSOR`, unavailable to ordinary third-party apps; Flip5/Fold7 evidence is non-OEM |
+| Google: Pixel 9 Pro Fold, Pixel 10 Pro Fold                                                             | ⚠️ Approximately 5-degree steps in non-OEM developer reports; provisional                                                                                                                                                                                                                           | ⚠️ WindowManager posture expected; runtime verification required per build                                                                                           | ⚠️ WindowManager geometry expected; runtime verification required per build                                                                                         | ⚠️ No physical verification; reported angle behavior must not be treated as verified                                                                                                                              |
+| Motorola: Razr 50 Ultra, Razr 40 Ultra, Razr 40, Razr 60 Ultra, Razr 50, Razr 60, Razr 2022             | ⚠️ Mixed: standard `TYPE_HINGE_ANGLE` is confirmed present on stock Razr 50 Ultra, has normal-app implementation evidence for Razr 50, and is strongly supported/configured on Razr 40 Ultra; exact granularity is unknown; Razr 40, the Razr 60 family, and Razr 2022 need physical runtime probes | ⚠️ WindowManager/device-state support is expected and partially evidenced; horizontal fold, but exact `FoldingFeature` output requires per-SKU/firmware verification | ⚠️ WindowManager/device-state support is expected and partially evidenced; horizontal fold, but exact `FoldingFeature` bounds require per-SKU/firmware verification | ⚠️ Evidence is mixed and incomplete; missing evidence is not evidence of absence                                                                                                                                  |
+| iPhone Duo                                                                                              | ⚠️ Public iOS 27.1 `UIHinge.angle` (`CGFloat` radians) and SwiftUI `DeviceHinge.angle` exist, but rate/granularity and physical behavior are unspecified/unverified                                                                                                                                 | ⚠️ Public `closed`/`partiallyOpen`/`fullyOpen`/`unknown` status API is documented but physically unverified                                                          | ⚠️ Public reserved-region APIs document frame, margins, active state, and division/occlusion kinds, but physical behavior is unverified                             | ⚠️ Ordinary public APIs with no documented entitlement, but retail hardware was unavailable at the 2026-09-23 cutoff and simulator fidelity is unverified                                                         |
 
 Android defines the public [`Sensor.TYPE_HINGE_ANGLE`](https://developer.android.com/reference/android/hardware/Sensor#TYPE_HINGE_ANGLE)
 and its [`SensorEvent.values`](https://developer.android.com/reference/android/hardware/SensorEvent#values)
@@ -203,36 +100,17 @@ and [`ReservedRegion`](https://developer.apple.com/documentation/swiftui/reserve
 
 ## Verification labels
 
-| Signal | Android | iOS |
-|---|---|---|
-| Native build/test | Verified locally and in release gate commands | Verified locally; 27.1 UIKit runtime assertions skip without runtime |
-| Fold posture | Hardware-verified on Samsung SM-F936B; emulator-verified on Pixel 10 Pro Fold AVD | Implemented-unverified for real hinge delivery |
-| Fold geometry | Hardware-verified as RN-root-relative DIP on Samsung SM-F936B | Not claimed; reports `null` |
-| Continuous angle | Emulator-verified; Samsung SM-F936B public sensor emitted only 0/90/180 degree samples | Implemented-unverified without iOS 27.1 runtime |
-| UI-runtime delivery | Harness-verified on Android and iOS simulator | Harness-verified with synthetic native samples |
-| Real foldable hardware | Posture/geometry verified on Samsung SM-F936B; continuous angle unavailable through its public sensor on tested firmware | Unverified |
+| Signal                 | Android                                                                                                                  | iOS                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Native build/test      | Verified locally and in release gate commands                                                                            | Verified locally; 27.1 UIKit runtime assertions skip without runtime |
+| Fold posture           | Hardware-verified on Samsung SM-F936B; emulator-verified on Pixel 10 Pro Fold AVD                                        | Implemented-unverified for real hinge delivery                       |
+| Fold geometry          | Hardware-verified as RN-root-relative DIP on Samsung SM-F936B                                                            | Not claimed; reports `null`                                          |
+| Continuous angle       | Emulator-verified; Samsung SM-F936B public sensor emitted only 0/90/180 degree samples                                   | Implemented-unverified without iOS 27.1 runtime                      |
+| UI-runtime delivery    | Harness-verified on Android and iOS simulator                                                                            | Harness-verified with synthetic native samples                       |
+| Real foldable hardware | Posture/geometry verified on Samsung SM-F936B; continuous angle unavailable through its public sensor on tested firmware | Unverified                                                           |
 
 Verification command output and device details are maintained outside the
 public package history.
-
-## Development
-
-```sh
-asdf exec corepack yarn install --immutable
-asdf exec corepack yarn check:generated
-asdf exec corepack yarn test:js
-asdf exec corepack yarn test:android
-asdf exec corepack yarn test:ios
-asdf exec corepack yarn test:worklet:android
-asdf exec corepack yarn test:worklet:ios
-asdf exec corepack yarn typecheck
-asdf exec corepack yarn lint
-asdf exec corepack yarn build:android:debug
-asdf exec corepack yarn build:android:release
-IOS_DERIVED_DATA_PATH=example/ios/build asdf exec corepack yarn build:ios
-asdf exec corepack yarn build
-asdf exec corepack yarn check:package
-```
 
 ## Credits
 
