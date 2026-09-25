@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Button,
   LayoutChangeEvent,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,7 +25,7 @@ function formatAngle(angle: number | null | undefined): string {
 }
 
 function formatRange(
-  range: ReturnType<typeof useClamshellCapabilities>['angleRange']
+  range: ReturnType<typeof useClamshellCapabilities>['angleRange'],
 ): string {
   return range == null ? 'unknown' : `${range.min}°-${range.max}°`;
 }
@@ -33,7 +34,7 @@ function formatGeometry(geometry: FoldGeometry | null): string {
   if (geometry == null) return 'none';
   const { bounds } = geometry;
   return `${bounds.x.toFixed(0)},${bounds.y.toFixed(
-    0
+    0,
   )} ${bounds.width.toFixed(0)}x${bounds.height.toFixed(0)} ${
     geometry.isSeparating ? 'separating' : 'non-separating'
   } ${geometry.occlusionType}`;
@@ -48,7 +49,7 @@ function blockJs(milliseconds = 1500) {
 
 function AngleConsumer({ label }: { label: string }): React.JSX.Element {
   const [angle, setAngle] = React.useState<number | null>(
-    () => Clamshell.getSnapshot().angle
+    () => Clamshell.getSnapshot().angle,
   );
 
   React.useEffect(() => {
@@ -58,7 +59,10 @@ function AngleConsumer({ label }: { label: string }): React.JSX.Element {
   }, []);
 
   return (
-    <Text accessibilityLabel={`${label} ${formatAngle(angle)}`} style={styles.row}>
+    <Text
+      accessibilityLabel={`${label} ${formatAngle(angle)}`}
+      style={styles.row}
+    >
       {label}: {formatAngle(angle)}
     </Text>
   );
@@ -116,6 +120,10 @@ function App(): React.JSX.Element {
   const capabilities = useClamshellCapabilities();
   const [showConsumers, setShowConsumers] = React.useState(true);
   const [rootSize, setRootSize] = React.useState({ width: 0, height: 0 });
+  const useRightPane =
+    Platform.OS === 'ios' &&
+    capabilities.isFoldable &&
+    state.posture !== 'closed';
 
   const onRootLayout = React.useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -126,14 +134,19 @@ function App(): React.JSX.Element {
     <View style={styles.root} onLayout={onRootLayout}>
       <GeometryOverlay geometry={state.geometry} rootSize={rootSize} />
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[
+          styles.container,
+          useRightPane && styles.rightPane,
+        ]}
         accessibilityLabel="Clamshell diagnostics screen"
       >
         <Text style={styles.title}>Clamshell diagnostics</Text>
 
         <View style={styles.card}>
           <Text style={styles.section}>Capabilities</Text>
-          <Text style={styles.row}>Detection: {capabilities.detectionStatus}</Text>
+          <Text style={styles.row}>
+            Detection: {capabilities.detectionStatus}
+          </Text>
           <Text style={styles.row}>
             Foldability:{' '}
             {capabilities.detectionStatus === 'pending'
@@ -163,8 +176,12 @@ function App(): React.JSX.Element {
           <Text style={styles.section}>State</Text>
           <Text style={styles.row}>Posture: {state.posture}</Text>
           <Text style={styles.row}>Orientation: {state.orientation}</Text>
-          <Text style={styles.row}>Snapshot angle: {formatAngle(state.angle)}</Text>
-          <Text style={styles.row}>Geometry: {formatGeometry(state.geometry)}</Text>
+          <Text style={styles.row}>
+            Snapshot angle: {formatAngle(state.angle)}
+          </Text>
+          <Text style={styles.row}>
+            Geometry: {formatGeometry(state.geometry)}
+          </Text>
         </View>
 
         <View style={styles.card}>
@@ -202,6 +219,9 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 20,
     paddingBottom: 48,
+  },
+  rightPane: {
+    marginLeft: '50%',
   },
   title: {
     color: '#83f28f',
