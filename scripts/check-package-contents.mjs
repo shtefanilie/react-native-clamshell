@@ -4,6 +4,7 @@ import { rmSync } from 'node:fs'
 const requiredEntries = [
   'README.md',
   'docs/api.md',
+  'docs/assets/clamshell-demo.gif',
   'lib/commonjs/index.js',
   'lib/module/index.js',
   'lib/typescript/src/index.d.ts',

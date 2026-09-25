@@ -1,6 +1,9 @@
 # Project-local planning artifacts
 docs/*
 !docs/api.md
+!docs/assets/
+docs/assets/*
+!docs/assets/clamshell-demo.gif
 .superpowers/
 
 # OSX

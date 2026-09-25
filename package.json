@@ -52,6 +52,7 @@
     "app.plugin.js",
     "*.podspec",
     "docs/api.md",
+    "docs/assets/clamshell-demo.gif",
     "README.md"
   ],
   "workspaces": [
