@@ -59,11 +59,11 @@
   "workspaces": [
     "example"
   ],
-  "repository": "https://github.com/stefanilie/react-native-clamshell.git",
+  "repository": "https://github.com/shtefanilie/react-native-clamshell.git",
   "author": "Stefan Ilie",
   "license": "MIT",
-  "bugs": "https://github.com/stefanilie/react-native-clamshell/issues",
-  "homepage": "https://github.com/stefanilie/react-native-clamshell#readme",
+  "bugs": "https://github.com/shtefanilie/react-native-clamshell/issues",
+  "homepage": "https://github.com/shtefanilie/react-native-clamshell#readme",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -95,14 +95,15 @@
     "react-native-worklets": "0.12.2",
     "react-test-renderer": "19.2.3",
     "semantic-release": "^25.0.7",
+    "semver": "^7.7.3",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "react": "19.2.3",
-    "react-native": "0.86.0",
-    "react-native-nitro-modules": "0.37.1",
-    "react-native-reanimated": "4.6.0",
-    "react-native-worklets": "0.12.2"
+    "react": "^19.2.0",
+    "react-native": "0.83 - 0.87",
+    "react-native-nitro-modules": "^0.37.1",
+    "react-native-reanimated": "4.6.x",
+    "react-native-worklets": "0.12.x"
   },
   "packageManager": "yarn@4.9.2",
   "eslintConfig": {

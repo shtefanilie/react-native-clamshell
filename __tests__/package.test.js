@@ -1,14 +1,15 @@
 const packageManifest = require('../package.json')
+const semver = require('semver')
 
 describe('published package manifest', () => {
-  test('declares the tested runtime stack as peer dependencies', () => {
+  test('declares supported runtime ranges as peer dependencies', () => {
     expect(packageManifest.name).toBe('react-native-clamshell')
     expect(packageManifest.peerDependencies).toEqual({
-      react: '19.2.3',
-      'react-native': '0.86.0',
-      'react-native-nitro-modules': '0.37.1',
-      'react-native-reanimated': '4.6.0',
-      'react-native-worklets': '0.12.2',
+      'react': '^19.2.0',
+      'react-native': '0.83 - 0.87',
+      'react-native-nitro-modules': '^0.37.1',
+      'react-native-reanimated': '4.6.x',
+      'react-native-worklets': '0.12.x',
     })
   })
 
@@ -36,9 +37,12 @@ describe('published package manifest', () => {
 
     expect(packageManifest.dependencies ?? {}).toEqual({})
     for (const peerName of peerNames) {
-      expect(exampleManifest.dependencies[peerName]).toBe(
-        packageManifest.peerDependencies[peerName]
-      )
+      expect(
+        semver.satisfies(
+          exampleManifest.dependencies[peerName],
+          packageManifest.peerDependencies[peerName]
+        )
+      ).toBe(true)
     }
   })
 })

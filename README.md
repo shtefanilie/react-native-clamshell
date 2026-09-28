@@ -1,12 +1,10 @@
 # react-native-clamshell
 
-📱 Foldable-device posture, 📐 fold geometry, and 📏 hinge-angle delivery for React Native New Architecture apps, powered by [Nitro.](https://github.com/stefanilie/react-native-nitro-modules)
-
+📱 Foldable-device posture, 📐 fold geometry, and 📏 hinge-angle delivery for React Native New Architecture apps, powered by [Nitro.](https://github.com/mrousavy/nitro)
 
 [![Version](https://img.shields.io/npm/v/react-native-clamshell.svg)](https://www.npmjs.com/package/react-native-clamshell)
 [![Downloads](https://img.shields.io/npm/dm/react-native-clamshell.svg)](https://www.npmjs.com/package/react-native-clamshell)
-[![License](https://img.shields.io/npm/l/react-native-clamshell.svg)](https://github.com/stefanilie/react-native-clamshell/blob/main/LICENSE)
-
+[![License](https://img.shields.io/npm/l/react-native-clamshell.svg)](https://github.com/shtefanilie/react-native-clamshell/blob/main/LICENSE)
 
 #### iOS
 
@@ -19,8 +17,6 @@
 <p align="center">
   <img src="docs/assets/clamshell-demo-android.gif" alt="React Native Clamshell Android demo" width="594" />
 </p>
-
-
 
 `react-native-clamshell` exposes low-frequency fold state through 🔥 Nitro
 methods/listeners and continuous hinge angle updates through a native Worklets
