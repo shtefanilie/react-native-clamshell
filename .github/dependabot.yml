@@ -62,6 +62,17 @@ updates:
       # 0.81-0.88), so the CLI major moves with React Native upgrades.
       - dependency-name: '@react-native-community/cli*'
         update-types: ['version-update:semver-major']
+      # React Native ships a renderer built for one exact React release, so
+      # React and its types/test renderer move with React Native upgrades.
+      - dependency-name: 'react'
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: 'react-test-renderer'
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: '@types/react*'
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
 
     groups:
       react-native-cli:
