@@ -19,6 +19,10 @@ updates:
       - 'nitrogen'
       - 'dependencies'
       - 'kotlin'
+    ignore:
+      # The example app's wrapper follows the React Native template. Newer
+      # Gradle releases ship Kotlin metadata the RN Gradle plugin can't read.
+      - dependency-name: 'gradle-wrapper'
 
   - package-ecosystem: 'bundler'
     directory: '/example/'
@@ -27,6 +31,9 @@ updates:
     labels:
       - 'dependencies'
       - 'ruby'
+    # Keep the CocoaPods-related pins from the React Native template Gemfile;
+    # only refresh Gemfile.lock within them.
+    versioning-strategy: lockfile-only
 
   - package-ecosystem: 'npm'
     directories:
@@ -39,6 +46,18 @@ updates:
       - 'dependencies'
       - 'typescript'
       - 'nitrogen'
+    ignore:
+      # React Native and Worklets still require Babel 7.
+      - dependency-name: '@babel/*'
+        update-types: ['version-update:semver-major']
+      # React Native upgrades touch native templates and must move core and
+      # tooling together, so they are done by hand. Patch releases still come.
+      - dependency-name: 'react-native'
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: '@react-native/*'
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
 
     groups:
       react-native-cli:
@@ -49,6 +68,7 @@ updates:
           - '@babel/*'
       react-native:
         patterns:
+          - 'react-native'
           - '@react-native/*'
       nitro:
         patterns:
