@@ -58,6 +58,10 @@ updates:
       - dependency-name: '@react-native/*'
         update-types:
           ['version-update:semver-major', 'version-update:semver-minor']
+      # Each CLI major targets specific React Native versions (20.x covers
+      # 0.81-0.88), so the CLI major moves with React Native upgrades.
+      - dependency-name: '@react-native-community/cli*'
+        update-types: ['version-update:semver-major']
 
     groups:
       react-native-cli:
