@@ -73,6 +73,20 @@ updates:
       - dependency-name: '@types/react*'
         update-types:
           ['version-update:semver-major', 'version-update:semver-minor']
+      # @react-native/eslint-config 0.86 supports ESLint 8 and 9 only, and this
+      # repo uses the eslintrc format (eslintConfig in package.json), which
+      # ESLint 10 removes. Move ESLint majors with a flat-config migration.
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      # The package declares peer support for Reanimated 4.6.x and Worklets
+      # 0.12.x. Widening that is a deliberate compatibility change, so only
+      # patch releases come through here.
+      - dependency-name: 'react-native-reanimated'
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: 'react-native-worklets'
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
 
     groups:
       react-native-cli:
@@ -89,3 +103,7 @@ updates:
         patterns:
           - 'nitrogen'
           - 'react-native-nitro-modules'
+      reanimated:
+        patterns:
+          - 'react-native-reanimated'
+          - 'react-native-worklets'
