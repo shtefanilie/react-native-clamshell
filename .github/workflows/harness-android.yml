@@ -80,6 +80,11 @@ jobs:
           runner: android
           projectRoot: example
           packageManager: yarn
+          # Workaround for callstackincubator/react-native-harness#299: on Linux,
+          # restoring a Metro cache makes "Plan Metro cache save" fail with
+          # "Argument list too long" even when the tests pass. Never saving the
+          # cache means nothing is restored. Remove once the action is fixed.
+          cacheSavePolicy: never
 
       - name: Stop Gradle
         if: always()
