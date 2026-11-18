@@ -3425,6 +3425,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-harness/bridge@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@react-native-harness/bridge@npm:1.7.0"
+  dependencies:
+    "@react-native-harness/platforms": "npm:1.7.0"
+    "@react-native-harness/tools": "npm:1.7.0"
+    pixelmatch: "npm:^7.1.0"
+    pngjs: "npm:^7.0.0"
+    ssim.js: "npm:^3.5.0"
+    tslib: "npm:^2.3.0"
+    web-streams-polyfill: "npm:^4.3.0"
+    ws: "npm:^8.18.2"
+  checksum: 10c0/17f47c0322989aa838a78db94e94474d15bf624f5dd07bd17aa015f4dfadd1605ea99ac054abd5b9aa3afd27b93d5128d8a0b3b17df4939f0f3129560d22180e
+  languageName: node
+  linkType: hard
+
 "@react-native-harness/bundler-metro@npm:1.5.0":
   version: 1.5.0
   resolution: "@react-native-harness/bundler-metro@npm:1.5.0"
@@ -3484,6 +3500,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-harness/config@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@react-native-harness/config@npm:1.7.0"
+  dependencies:
+    "@react-native-harness/plugins": "npm:1.7.0"
+    "@react-native-harness/tools": "npm:1.7.0"
+    tslib: "npm:^2.3.0"
+    zod: "npm:^3.25.67"
+  checksum: 10c0/4644794ce8c30954f28d2ec6d33417e9e2663d44cc4ad9312d864919b9d24601c9908739f78278b125e49f393f92a1869dc7040b35374089af8d48bcf7d0a221
+  languageName: node
+  linkType: hard
+
 "@react-native-harness/jest@npm:1.5.0":
   version: 1.5.0
   resolution: "@react-native-harness/jest@npm:1.5.0"
@@ -3517,16 +3545,16 @@ __metadata:
   linkType: hard
 
 "@react-native-harness/platform-android@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "@react-native-harness/platform-android@npm:1.5.0"
+  version: 1.7.0
+  resolution: "@react-native-harness/platform-android@npm:1.7.0"
   dependencies:
-    "@react-native-harness/config": "npm:1.5.0"
-    "@react-native-harness/platforms": "npm:1.5.0"
-    "@react-native-harness/tools": "npm:1.5.0"
+    "@react-native-harness/config": "npm:1.7.0"
+    "@react-native-harness/platforms": "npm:1.7.0"
+    "@react-native-harness/tools": "npm:1.7.0"
     tslib: "npm:^2.3.0"
     vite: "npm:^7.2.2"
     zod: "npm:^3.25.67"
-  checksum: 10c0/aba6e86352bd3cedd0d1fcd3834008f3f407d4ea7cf8d44c3b44ff989885ee24bb17f9cc98fc46d964359c1814525d44230d373d4e7736cce56536601709c460
+  checksum: 10c0/b6d50134f86e5c8ae9b8d18c3fdedb51c5310ecf0a576d412e3bacb37b0d51edb18c4c191b1eb9e7fb5967429a98c2fd01736213e4d57d47313c973f73d89051
   languageName: node
   linkType: hard
 
@@ -3554,6 +3582,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-harness/platforms@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@react-native-harness/platforms@npm:1.7.0"
+  dependencies:
+    "@react-native-harness/tools": "npm:1.7.0"
+    tslib: "npm:^2.3.0"
+  checksum: 10c0/f644b173028d66b3be6925beb0cb1415ed7c83ae5eb5b93115b1f23ca683a8e7ffc17ffb905f130d849558846ed97b3af9ecf791b87010b4340a5ce636e45fb2
+  languageName: node
+  linkType: hard
+
 "@react-native-harness/plugins@npm:1.5.0":
   version: 1.5.0
   resolution: "@react-native-harness/plugins@npm:1.5.0"
@@ -3564,6 +3602,19 @@ __metadata:
     hookable: "npm:^6.1.0"
     tslib: "npm:^2.3.0"
   checksum: 10c0/9dc98eeefd22856dd459de7c3578a011c1949e691a486e94c9400770cd96a1ae856edb854cfa16070a36d86803a7514c3f529f244cb6cd2ea872bfe60bbad20f
+  languageName: node
+  linkType: hard
+
+"@react-native-harness/plugins@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@react-native-harness/plugins@npm:1.7.0"
+  dependencies:
+    "@react-native-harness/bridge": "npm:1.7.0"
+    "@react-native-harness/platforms": "npm:1.7.0"
+    "@react-native-harness/tools": "npm:1.7.0"
+    hookable: "npm:^6.1.0"
+    tslib: "npm:^2.3.0"
+  checksum: 10c0/bf22fec07b38625103c83d98db9bcb20e3c7031fbdca3f54ccb971600b346d65d7384eebbfa37bd89d9a7979aba219de7c62491e3b1d785fa491983a8fa587c2
   languageName: node
   linkType: hard
 
@@ -3598,6 +3649,21 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: 10c0/c5a22f76785490f0c16ea9046a49f5bba92c18ba77a9d8b88312292d5ab8a03ffbaa147bdd2fcbe1b405248615470b1553ae48dc3cb4084907f2d7fa9c35a872
+  languageName: node
+  linkType: hard
+
+"@react-native-harness/tools@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@react-native-harness/tools@npm:1.7.0"
+  dependencies:
+    "@clack/prompts": "npm:1.0.0-alpha.9"
+    memfs: "npm:^4.64.0"
+    nano-spawn: "npm:^1.0.2"
+    picocolors: "npm:^1.1.1"
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    react-native: "*"
+  checksum: 10c0/7a44bfac18c92675d3420bda0b06c90e9380bb2f626db183a9a2560da4d3e62470e78e75f9b8a6e739cfd31c5061f87cee42e060266fa811b827a6d56caacbc0
   languageName: node
   linkType: hard
 
@@ -14848,6 +14914,13 @@ __metadata:
   dependencies:
     defaults: "npm:^1.0.3"
   checksum: 10c0/5b61ca583a95e2dd85d7078400190efd452e05751a64accb8c06ce4db65d7e0b0cde9917d705e826a2e05cc2548f61efde115ffa374c3e436d04be45c889e5b4
+  languageName: node
+  linkType: hard
+
+"web-streams-polyfill@npm:^4.3.0":
+  version: 4.5.1
+  resolution: "web-streams-polyfill@npm:4.5.1"
+  checksum: 10c0/5d087b4e8dfdb30ea43a3192fbeda3f54d3e32659ababf6758bc2030a48c153f6f00d0f7b507a20fddf75f122bc609219cab3b69a2c3830ae013fff918a7db7f
   languageName: node
   linkType: hard
 
