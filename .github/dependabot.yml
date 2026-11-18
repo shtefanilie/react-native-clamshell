@@ -36,9 +36,10 @@ updates:
     versioning-strategy: lockfile-only
 
   - package-ecosystem: 'npm'
-    directories:
-      - '/example/'
-      - '/'
+    # The root is a Yarn workspace that includes example/, so scanning '/'
+    # covers both manifests. Listing '/example/' too made Dependabot open
+    # duplicate PRs for the same update.
+    directory: '/'
     schedule:
       interval: 'daily'
     labels:
