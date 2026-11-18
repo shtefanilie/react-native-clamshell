@@ -12503,7 +12503,7 @@ __metadata:
     eslint: "npm:8.57.1"
     jest: "npm:30.5.1"
     prettier: "npm:3.3.3"
-    react: "npm:19.2.3"
+    react: "npm:19.2.9"
     react-native: "npm:0.86.3"
     react-native-harness: "npm:^1.5.0"
     react-native-nitro-modules: "npm:0.37.2"
@@ -12535,7 +12535,7 @@ __metadata:
     jest: "npm:30.5.1"
     nitrogen: "npm:0.37.2"
     prettier: "npm:3.3.3"
-    react: "npm:19.2.3"
+    react: "npm:19.2.9"
     react-native: "npm:0.86.3"
     react-native-builder-bob: "npm:^0.44.1"
     react-native-nitro-modules: "npm:0.37.2"
@@ -12725,10 +12725,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.2.3":
-  version: 19.2.3
-  resolution: "react@npm:19.2.3"
-  checksum: 10c0/094220b3ba3a76c1b668f972ace1dd15509b157aead1b40391d1c8e657e720c201d9719537375eff08f5e0514748c0319063392a6f000e31303aafc4471f1436
+"react@npm:19.2.9":
+  version: 19.2.9
+  resolution: "react@npm:19.2.9"
+  checksum: 10c0/2177cc3206824d0d18fa2c40bbbfd64f5716d5f932917d1be6863ce2f14555e6df60fa4621a69780f8986f27d5e0d696b0d8d6cac941f45b3bacf1bea2e0f732
   languageName: node
   linkType: hard
 
