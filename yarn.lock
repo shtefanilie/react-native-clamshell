@@ -2278,7 +2278,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/react-is-19@npm:react-is@^19.2.5, react-is@npm:^19.2.3":
+"@jest/react-is-19@npm:react-is@^19.2.5":
   version: 19.3.0
   resolution: "react-is@npm:19.3.0"
   checksum: 10c0/99b16fc1009222ec0bbe05286566c865908430778ea6ba90dd418c7a11594c6cbb8db58432735b9203e3c6463e3eef5a399df1317ee2d75fd96b3a88cfaa662e
@@ -12892,6 +12892,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-is@npm:^19.2.9":
+  version: 19.3.1
+  resolution: "react-is@npm:19.3.1"
+  checksum: 10c0/428e02d986d56f1859c57756084489f6d2900fd686905003c405b32f1168738b78772bfa4bb6c706f5ac821199171522c28bf6434281f524f901459390a19606
+  languageName: node
+  linkType: hard
+
 "react-native-builder-bob@npm:^0.44.1":
   version: 0.44.1
   resolution: "react-native-builder-bob@npm:0.44.1"
@@ -12984,7 +12991,7 @@ __metadata:
     react-native-nitro-modules: "npm:0.37.2"
     react-native-reanimated: "npm:4.6.0"
     react-native-worklets: "npm:0.12.2"
-    react-test-renderer: "npm:19.2.3"
+    react-test-renderer: "npm:19.2.9"
     semantic-release: "npm:^25.0.7"
     semver: "npm:^7.7.3"
     typescript: "npm:^6.0.3"
@@ -13156,15 +13163,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-test-renderer@npm:19.2.3":
-  version: 19.2.3
-  resolution: "react-test-renderer@npm:19.2.3"
+"react-test-renderer@npm:19.2.9":
+  version: 19.2.9
+  resolution: "react-test-renderer@npm:19.2.9"
   dependencies:
-    react-is: "npm:^19.2.3"
+    react-is: "npm:^19.2.9"
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.3
-  checksum: 10c0/842b82239dbddbc536083a6260c3e1b0507c02a3400bd05879fc19160468fd0f8ab79fec5dceffa6113b131835cc7621212f8415b46ea5156ab66bbfd7e24297
+    react: ^19.2.9
+  checksum: 10c0/432e905c01bfba7ad1dda931b6b55ccc63aaf190c0f042a344d9f7d9af4fe53224add7938c4310ac74fe1d0b5fbf32987f508681eb719244406a158369e42d2c
   languageName: node
   linkType: hard
 
