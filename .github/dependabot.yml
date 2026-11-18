@@ -108,3 +108,9 @@ updates:
         patterns:
           - 'react-native-reanimated'
           - 'react-native-worklets'
+      react-native-harness:
+        # The harness packages depend on each other at exact versions, so
+        # moving one alone leaves two copies of the shared internals.
+        patterns:
+          - 'react-native-harness'
+          - '@react-native-harness/*'
